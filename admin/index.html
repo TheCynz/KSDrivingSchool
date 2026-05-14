@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>KS Driving School Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#17211d",
+              road: "#0b3a78",
+              signal: "#f6c445",
+              kerb: "#eef5fb",
+              leaf: "#1769aa"
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="icon" href="../assets/favicon.png" type="image/png">
+    <link rel="stylesheet" href="../assets/styles.css">
+  </head>
+  <body class="min-h-screen bg-kerb text-ink antialiased">
+    <main class="mx-auto grid min-h-screen max-w-6xl gap-8 px-5 py-8 lg:grid-cols-[420px_1fr]">
+      <section class="self-start rounded-md bg-road p-7 text-white shadow-xl shadow-ink/10">
+        <a class="inline-flex rounded-md bg-[#efeee3] px-3 py-2 shadow-sm" href="../home/" aria-label="KS Driving School home">
+          <img class="h-14 w-auto" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
+        </a>
+        <h1 class="mt-5 text-3xl font-black tracking-normal">Private admin</h1>
+        <p class="mt-3 leading-7 text-white/75">Sign in to manage pass posts, reviews, instructor coverage, and map areas.</p>
+
+        <form id="login-form" class="mt-8 space-y-4">
+          <div>
+            <label class="text-sm font-bold" for="email">Email</label>
+            <input class="mt-2 w-full rounded-md border border-white/15 bg-white px-4 py-3 text-ink outline-none focus:ring-2 focus:ring-signal" id="email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div>
+            <label class="text-sm font-bold" for="password">Password</label>
+            <input class="mt-2 w-full rounded-md border border-white/15 bg-white px-4 py-3 text-ink outline-none focus:ring-2 focus:ring-signal" id="password" name="password" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="w-full rounded-md bg-signal px-5 py-3 font-black text-ink transition hover:bg-white" type="submit">Sign in</button>
+          <p id="login-message" class="min-h-6 text-sm text-white/75" role="status"></p>
+        </form>
+
+        <div id="session-panel" class="mt-8 hidden rounded-md border border-white/15 p-4">
+          <p class="text-sm text-white/70">Signed in as</p>
+          <p id="session-email" class="break-all font-bold"></p>
+          <button id="sign-out" class="mt-4 rounded-md border border-white/25 px-4 py-2 text-sm font-bold transition hover:bg-white/10" type="button">Sign out</button>
+        </div>
+      </section>
+
+      <section id="admin-panel" class="hidden">
+        <div class="rounded-md bg-white p-7 shadow-xl shadow-ink/10">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">New post</p>
+              <h2 class="mt-2 text-3xl font-black tracking-normal">Student passed with no faults</h2>
+            </div>
+          </div>
+
+          <form id="post-form" class="mt-8 grid gap-5">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label class="text-sm font-bold" for="student-name">Student name</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="student-name" name="student-name" type="text" maxlength="80" placeholder="e.g. Aisha" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="passed-at">Pass date</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="passed-at" name="passed-at" type="date" required>
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-bold" for="caption">Caption</label>
+              <textarea class="mt-2 min-h-28 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="caption" name="caption" maxlength="220">Student passed with no faults.</textarea>
+            </div>
+            <div>
+              <label class="text-sm font-bold" for="review">Student review</label>
+              <textarea class="mt-2 min-h-28 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="review" name="review" maxlength="320" placeholder="Optional quote from the student or parent"></textarea>
+            </div>
+            <div>
+              <label class="text-sm font-bold" for="photo">Photo</label>
+              <input class="mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 file:mr-4 file:rounded-md file:border-0 file:bg-signal file:px-4 file:py-2 file:font-bold file:text-ink" id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <p class="mt-2 text-sm text-ink/60">JPEG, PNG, or WebP. Keep student consent on file before publishing.</p>
+            </div>
+            <label class="flex items-center gap-3 text-sm font-bold">
+              <input id="published" name="published" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
+              Publish immediately
+            </label>
+            <button class="rounded-md bg-ink px-5 py-4 font-black text-white transition hover:bg-leaf" type="submit">Upload post</button>
+            <p id="post-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
+          </form>
+        </div>
+
+        <div class="mt-6 rounded-md bg-white p-7 shadow-xl shadow-ink/10">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-2xl font-black tracking-normal">Existing posts</h2>
+            <button id="refresh-posts" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+          </div>
+          <div id="admin-posts" class="mt-5 grid gap-4"></div>
+        </div>
+
+        <div class="mt-6 rounded-md bg-white p-7 shadow-xl shadow-ink/10">
+          <div>
+            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Coverage map</p>
+            <h2 class="mt-2 text-3xl font-black tracking-normal">Instructors and areas</h2>
+          </div>
+
+          <form id="instructor-form" class="mt-8 grid gap-5">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label class="text-sm font-bold" for="instructor-name">Instructor name</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-name" name="instructor-name" type="text" maxlength="90" placeholder="e.g. Karen Jones" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="instructor-area">Display area</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-area" name="instructor-area" type="text" maxlength="120" placeholder="e.g. Shrewsbury and Shawbury" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="map-key">Map area</label>
+                <select class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="map-key" name="map-key" required>
+                  <option value="shrewsbury">Shrewsbury</option>
+                  <option value="telford">Telford</option>
+                  <option value="shawbury">Shawbury</option>
+                  <option value="boomerheath">Boomerheath</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="transmission">Transmission</label>
+                <select class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="transmission" name="transmission" required>
+                  <option>Manual</option>
+                  <option>Automatic</option>
+                  <option>Manual and automatic</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="instructor-phone">Phone</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-phone" name="instructor-phone" type="tel" maxlength="40" placeholder="Optional direct number">
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="sort-order">Sort order</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="sort-order" name="sort-order" type="number" min="0" value="10">
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-bold" for="instructor-bio">Short note</label>
+              <textarea class="mt-2 min-h-24 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-bio" name="instructor-bio" maxlength="220" placeholder="e.g. Grade A instructor covering Shrewsbury, Shawbury and nearby villages."></textarea>
+            </div>
+            <label class="flex items-center gap-3 text-sm font-bold">
+              <input id="instructor-active" name="instructor-active" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
+              Show on public map
+            </label>
+            <button class="rounded-md bg-ink px-5 py-4 font-black text-white transition hover:bg-leaf" type="submit">Add instructor</button>
+            <p id="instructor-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
+          </form>
+
+          <div class="mt-8 flex items-center justify-between gap-4">
+            <h3 class="text-2xl font-black tracking-normal">Current instructors</h3>
+            <button id="refresh-instructors" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+          </div>
+          <div id="admin-instructors" class="mt-5 grid gap-4"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/supabase-config.js"></script>
+    <script src="../assets/admin.js"></script>
+  </body>
+</html>
