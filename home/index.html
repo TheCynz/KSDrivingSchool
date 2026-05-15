@@ -126,8 +126,8 @@
 
     <main>
       <section class="relative overflow-hidden bg-road text-white">
-        <img class="absolute inset-0 h-full w-full object-cover opacity-60" src="../assets/hero-blue-car.jpg" alt="Driving instructor car on the road">
-        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,35,78,.94),rgba(11,58,120,.72),rgba(11,58,120,.28))]"></div>
+        <img class="absolute inset-0 h-full w-full object-cover opacity-85" src="../assets/hero-blue-car.jpg" alt="Driving instructor car on the road">
+        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,35,78,.70),rgba(11,58,120,.38),rgba(11,58,120,.08))]"></div>
         <div class="relative z-10 mx-auto grid min-h-[720px] max-w-6xl gap-8 px-4 pb-28 pt-10 sm:px-5 lg:grid-cols-[1fr_380px] lg:items-center">
           <div class="max-w-3xl">
             <p class="mb-5 inline-flex rounded-md bg-white/12 px-3 py-2 text-sm font-bold text-signal ring-1 ring-white/20">Local driving lessons in Shropshire</p>
@@ -146,20 +146,27 @@
           <aside class="rounded-md bg-white p-5 text-ink shadow-2xl shadow-black/25">
             <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Start here</p>
             <h2 class="mt-2 text-2xl font-black">Book lessons in minutes</h2>
-            <div class="mt-5 grid gap-3">
-              <div class="rounded-md bg-kerb p-4">
-                <p class="font-black">1. Tell us your postcode</p>
-                <p class="mt-1 text-sm leading-6 text-ink/68">We match you with an instructor covering your area.</p>
+            <form id="lesson-finder" class="mt-5 grid gap-4">
+              <div>
+                <label class="text-sm font-bold" for="lesson-postcode">Postcode or area</label>
+                <input class="mt-2 w-full rounded-md border border-ink/18 bg-white px-4 py-3 text-ink outline-none focus:border-leaf focus:ring-2 focus:ring-leaf/25" id="lesson-postcode" name="lesson-postcode" type="text" autocomplete="postal-code" placeholder="e.g. TF3 or Shrewsbury" required>
               </div>
-              <div class="rounded-md bg-kerb p-4">
-                <p class="font-black">2. Choose manual or automatic</p>
-                <p class="mt-1 text-sm leading-6 text-ink/68">Lessons are planned around your confidence and test goals.</p>
-              </div>
-              <div class="rounded-md bg-kerb p-4">
-                <p class="font-black">3. Get your first slot</p>
-                <p class="mt-1 text-sm leading-6 text-ink/68">Call or send the contact form and we’ll reply with availability.</p>
-              </div>
-            </div>
+              <fieldset>
+                <legend class="text-sm font-bold">Transmission</legend>
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                  <label class="lesson-choice">
+                    <input class="sr-only" type="radio" name="lesson-transmission" value="manual" checked>
+                    <span>Manual</span>
+                  </label>
+                  <label class="lesson-choice">
+                    <input class="sr-only" type="radio" name="lesson-transmission" value="automatic">
+                    <span>Automatic</span>
+                  </label>
+                </div>
+              </fieldset>
+              <button class="rounded-md bg-signal px-5 py-3 font-black text-ink transition hover:bg-road hover:text-white focus:outline-none focus:ring-2 focus:ring-road" type="submit">Find instructors</button>
+              <p id="lesson-finder-message" class="min-h-6 text-sm font-bold text-ink/70" role="status"></p>
+            </form>
           </aside>
         </div>
         <div class="absolute bottom-0 left-0 right-0 z-10 bg-white shadow-2xl shadow-black/10">
@@ -187,7 +194,7 @@
               <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Where can I find lessons?</p>
               <h2 class="mt-3 text-3xl font-black tracking-normal sm:text-4xl">Coverage across Shrewsbury, Telford, Shawbury and nearby areas.</h2>
             </div>
-            <p class="max-w-md text-sm leading-6 text-ink/70">Tap an area to see which instructors cover it. The instructor list is managed from the private admin area.</p>
+            <p class="max-w-md text-sm leading-6 text-ink/70">Tap an area to see which instructors cover it, or use the postcode checker above to jump straight to local matches.</p>
           </div>
 
           <div class="mt-9 grid gap-6 sm:mt-12 lg:grid-cols-[1.1fr_.9fr]">
@@ -202,7 +209,6 @@
                   <path d="M122 218 C176 216 229 225 282 247 C331 267 389 283 456 288 C507 292 550 310 590 342" fill="none" stroke="#b4cce1" stroke-width="4" stroke-linecap="round"></path>
                   <text x="128" y="118" class="fill-road text-[14px] font-black opacity-70">North Shropshire</text>
                   <text x="498" y="410" class="fill-road text-[14px] font-black opacity-70">East Shropshire</text>
-                  <text x="86" y="455" class="fill-road text-[12px] font-bold opacity-55">Coverage area shown, not exact boundaries</text>
                   <g class="map-area cursor-pointer" data-map-key="shrewsbury">
                     <circle cx="286" cy="317" r="82" fill="#1769aa" opacity=".16"></circle>
                     <circle cx="286" cy="317" r="47" fill="#1769aa" opacity=".96"></circle>
@@ -246,6 +252,7 @@
             <div class="rounded-md bg-white p-5 shadow-xl shadow-ink/8 sm:p-6">
               <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Instructors</p>
               <h3 id="selected-area-title" class="mt-2 text-2xl font-black">Shrewsbury instructors</h3>
+              <p id="instructor-match-message" class="mt-2 hidden text-sm font-bold text-road"></p>
               <div id="instructor-list" class="mt-5 grid gap-4">
                 <div class="rounded-md border border-ink/10 p-4 text-ink/70">Loading instructors...</div>
               </div>
@@ -332,7 +339,7 @@
           <a class="footer-icon-link" href="mailto:ksdrivingschool66@gmail.com" aria-label="Email KS Driving School">
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"></path><path d="m22 7-10 6L2 7"></path></svg>
           </a>
-          <a class="footer-icon-link" data-facebook-link href="https://www.facebook.com/drivinglessonsshrewsbury/" target="_blank" rel="noopener" aria-label="Facebook">
+          <a class="footer-icon-link" data-facebook-link href="https://www.facebook.com/drivinglessonsshrewsbury/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.6.4-1 1-1Z"></path></svg>
           </a>
           <button class="footer-icon-link" data-cookie-settings type="button" aria-label="Cookie settings">

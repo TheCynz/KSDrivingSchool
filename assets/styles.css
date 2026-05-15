@@ -49,6 +49,72 @@ summary::-webkit-details-marker {
   transform: scale(1.05);
 }
 
+.lesson-choice span {
+  align-items: center;
+  border: 1px solid rgb(23 33 29 / 14%);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.875rem;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 44px;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.lesson-choice input:checked + span {
+  background: #0b3a78;
+  border-color: #0b3a78;
+  color: #fff;
+}
+
+.instructor-match {
+  border-color: #1769aa;
+  box-shadow: 0 0 0 3px rgb(23 105 170 / 16%);
+}
+
+.instructor-match-pulse {
+  animation: instructor-match-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes instructor-match-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgb(23 105 170 / 16%);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px rgb(246 196 69 / 28%);
+  }
+}
+
+.icon-action {
+  align-items: center;
+  background: #0b3a78;
+  border-radius: 6px;
+  color: #fff;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  transition: background-color 160ms ease, color 160ms ease;
+  width: 44px;
+}
+
+.icon-action:hover {
+  background: #f6c445;
+  color: #17211d;
+}
+
+.icon-action svg {
+  fill: none;
+  height: 22px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+  width: 22px;
+}
+
 .footer-icon-link {
   align-items: center;
   border: 1px solid rgb(23 33 29 / 12%);

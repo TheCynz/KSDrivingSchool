@@ -38,11 +38,21 @@
   }
 
   function publicPhoneHref() {
-    return window.KS_SITE?.phoneHref || "+443337720143";
+    return safePhoneHref(window.KS_SITE?.phoneHref, "+443337720143");
   }
 
   function publicEmail() {
-    return window.KS_SITE?.email || "ksdrivingschool66@gmail.com";
+    return safeEmail(window.KS_SITE?.email, "ksdrivingschool66@gmail.com");
+  }
+
+  function safeEmail(value, fallback) {
+    const email = String(value || "").trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : fallback;
+  }
+
+  function safePhoneHref(value, fallback) {
+    const phone = String(value || "").trim();
+    return /^\+?[0-9\s().-]{7,24}$/.test(phone) ? phone.replace(/[^\d+]/g, "") : fallback;
   }
 
   if (mobileNavToggle && primaryNav) {
@@ -102,7 +112,7 @@
       : `<div class="flex aspect-[4/5] w-full items-center justify-center rounded-md bg-white text-6xl font-black text-road shadow-xl shadow-ink/10">${escapeHtml(initials(instructor.name))}</div>`;
     const description = instructor.profile_bio || instructor.bio || "Contact KS Driving School to check this instructor's current lesson availability.";
     const directPhone = instructor.phone || publicPhone();
-    const directPhoneHref = directPhone.replace(/[^\d+]/g, "");
+    const directPhoneHref = safePhoneHref(directPhone, publicPhoneHref());
     const subject = encodeURIComponent(`Driving lessons with ${instructor.name}`);
     const areaLabel = instructorAreaLabel(instructor);
 

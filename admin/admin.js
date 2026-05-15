@@ -26,6 +26,9 @@
   const instructorMessage = document.querySelector("#instructor-message");
   const adminInstructors = document.querySelector("#admin-instructors");
   const refreshInstructors = document.querySelector("#refresh-instructors");
+  const toggleInstructorForm = document.querySelector("#toggle-instructor-form");
+  const instructorFormPanel = document.querySelector("#instructor-form-panel");
+  const instructorListPanel = document.querySelector("#instructor-list-panel");
   const mapKeyInputs = Array.from(document.querySelectorAll('input[name="map-keys"]'));
   const settingsForm = document.querySelector("#settings-form");
   const settingsMessage = document.querySelector("#settings-message");
@@ -42,6 +45,9 @@
   const adminUserMessage = document.querySelector("#admin-user-message");
   const adminUsers = document.querySelector("#admin-users");
   const refreshAdminUsers = document.querySelector("#refresh-admin-users");
+  const toggleAdminUserForm = document.querySelector("#toggle-admin-user-form");
+  const adminUserFormPanel = document.querySelector("#admin-user-form-panel");
+  const adminUserListPanel = document.querySelector("#admin-user-list-panel");
   const adminNavCards = Array.from(document.querySelectorAll(".admin-nav-card"));
   const adminViews = Array.from(document.querySelectorAll(".admin-view"));
   const maxPhotoSize = 5 * 1024 * 1024;
@@ -97,6 +103,13 @@
       card.classList.toggle("ring-1", !active);
       card.classList.toggle("ring-ink/8", !active);
     });
+  }
+
+  function setPanelOpen(panel, button, open, listPanel) {
+    if (!panel || !button) return;
+    panel.classList.toggle("hidden", !open);
+    button.setAttribute("aria-expanded", String(open));
+    listPanel?.classList.toggle("hidden", open);
   }
 
   function escapeHtml(value) {
@@ -157,6 +170,15 @@
 
   function isValidPhoto(file) {
     return allowedPhotoTypes.has(file.type) && file.size > 0 && file.size <= maxPhotoSize;
+  }
+
+  function safeImageUrl(value) {
+    try {
+      const url = new URL(String(value || ""), window.location.href);
+      return url.protocol === "https:" || url.protocol === "http:" ? url.href : "";
+    } catch (_error) {
+      return "";
+    }
   }
 
   function resetPostForm() {
@@ -271,8 +293,9 @@
       const studentName = escapeHtml(post.student_name);
       const caption = escapeHtml(post.caption || "Student passed with no faults.");
       const review = post.review ? `<blockquote class="mt-2 border-l-4 border-signal pl-3 text-sm font-bold leading-6 text-ink/78">"${escapeHtml(post.review)}"</blockquote>` : "";
-      const image = post.image_url
-        ? `<img class="h-28 w-full rounded-md object-cover sm:w-28" src="${escapeHtml(post.image_url)}" alt="">`
+      const postImageUrl = safeImageUrl(post.image_url);
+      const image = postImageUrl
+        ? `<img class="h-28 w-full rounded-md object-cover sm:w-28" src="${escapeHtml(postImageUrl)}" alt="" loading="lazy" decoding="async">`
         : `<div class="flex h-28 w-full items-center justify-center rounded-md bg-kerb text-sm font-black text-road sm:w-28">No photo</div>`;
 
       return `
@@ -321,8 +344,9 @@
       const phone = instructor.phone ? `<p class="mt-1 text-sm text-ink/60">${escapeHtml(instructor.phone)}</p>` : "";
       const profileDescription = instructor.profile_bio ? `<p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(instructor.profile_bio)}</p>` : "";
       const mapKeys = getInstructorMapKeys(instructor);
-      const photo = instructor.photo_url
-        ? `<img class="h-20 w-20 rounded-md object-cover" src="${escapeHtml(instructor.photo_url)}" alt="">`
+      const instructorPhotoUrl = safeImageUrl(instructor.photo_url);
+      const photo = instructorPhotoUrl
+        ? `<img class="h-20 w-20 rounded-md object-cover" src="${escapeHtml(instructorPhotoUrl)}" alt="" loading="lazy" decoding="async">`
         : `<div class="flex h-20 w-20 items-center justify-center rounded-md bg-kerb text-xl font-black text-road">${escapeHtml(instructor.name.slice(0, 1))}</div>`;
 
       return `
@@ -475,6 +499,7 @@
     if (!instructor) return;
 
     showAdminView("instructors");
+    setPanelOpen(instructorFormPanel, toggleInstructorForm, true, instructorListPanel);
     instructorId.value = instructor.id;
     instructorCurrentPhotoPath.value = instructor.photo_path || "";
     document.querySelector("#instructor-name").value = instructor.name || "";
@@ -496,6 +521,7 @@
     if (!admin) return;
 
     showAdminView("admins");
+    setPanelOpen(adminUserFormPanel, toggleAdminUserForm, true, adminUserListPanel);
     adminUserId.value = admin.user_id;
     adminUserEmail.value = admin.email || "";
     adminUserEmail.disabled = true;
@@ -533,6 +559,7 @@
   signOutButton.addEventListener("click", async () => {
     await client.auth.signOut();
     setSignedOut();
+    window.location.href = "../home/";
   });
 
   postForm.addEventListener("submit", async (event) => {
@@ -636,7 +663,7 @@
     let uploadedNewPhoto = false;
 
     if (mapKeys.length === 0) {
-      setMessage(instructorMessage, "Choose at least one map area.", true);
+      setMessage(instructorMessage, "Choose at least one lesson area.", true);
       return;
     }
 
@@ -711,6 +738,7 @@
     }
 
     resetInstructorForm();
+    setPanelOpen(instructorFormPanel, toggleInstructorForm, false, instructorListPanel);
     setMessage(instructorMessage, editingInstructorId ? "Instructor updated." : "Instructor added.", false);
     loadAdminInstructors();
   });
@@ -794,6 +822,7 @@
     }
 
     resetAdminUserForm();
+    setPanelOpen(adminUserFormPanel, toggleAdminUserForm, false, adminUserListPanel);
     loadAdminUsers();
   });
 
@@ -910,17 +939,35 @@
 
   instructorCancelEdit.addEventListener("click", () => {
     resetInstructorForm();
+    setPanelOpen(instructorFormPanel, toggleInstructorForm, false, instructorListPanel);
     setMessage(instructorMessage, "", false);
   });
 
   adminUserCancelEdit.addEventListener("click", () => {
     resetAdminUserForm();
+    setPanelOpen(adminUserFormPanel, toggleAdminUserForm, false, adminUserListPanel);
     setMessage(adminUserMessage, "", false);
   });
 
   refreshPosts.addEventListener("click", loadAdminPosts);
   refreshInstructors.addEventListener("click", loadAdminInstructors);
   refreshAdminUsers.addEventListener("click", loadAdminUsers);
+  toggleInstructorForm?.addEventListener("click", () => {
+    const open = instructorFormPanel.classList.contains("hidden");
+    setPanelOpen(instructorFormPanel, toggleInstructorForm, open, instructorListPanel);
+    if (open) {
+      resetInstructorForm();
+      setMessage(instructorMessage, "", false);
+    }
+  });
+  toggleAdminUserForm?.addEventListener("click", () => {
+    const open = adminUserFormPanel.classList.contains("hidden");
+    setPanelOpen(adminUserFormPanel, toggleAdminUserForm, open, adminUserListPanel);
+    if (open) {
+      resetAdminUserForm();
+      setMessage(adminUserMessage, "", false);
+    }
+  });
   showAdminView("passes");
   loadSession();
 })();

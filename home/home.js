@@ -2,11 +2,15 @@
   const gallery = document.querySelector("#pass-gallery");
   const instructorList = document.querySelector("#instructor-list");
   const selectedAreaTitle = document.querySelector("#selected-area-title");
+  const instructorMatchMessage = document.querySelector("#instructor-match-message");
+  const lessonFinder = document.querySelector("#lesson-finder");
+  const lessonFinderMessage = document.querySelector("#lesson-finder-message");
   const areaTabs = Array.from(document.querySelectorAll(".area-tab"));
   const mapAreas = Array.from(document.querySelectorAll(".map-area"));
   const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
   const primaryNav = document.querySelector("#primary-nav");
   let selectedArea = "shrewsbury";
+  let preferredTransmission = "";
   let instructors = [];
 
   const areaLabels = {
@@ -76,7 +80,7 @@
     gallery.innerHTML = `
       <div class="rounded-md bg-white p-6 text-ink/70 sm:col-span-2 lg:col-span-3">
         <p class="text-xl font-black text-ink">Recent pass photos will appear here.</p>
-        <p class="mt-2 leading-7">Once an instructor uploads a student pass through the private admin area, the photo and review are served from Supabase Storage.</p>
+        <p class="mt-2 leading-7">Recent student pass photos and reviews will be published here after the team adds them.</p>
       </div>
     `;
   }
@@ -152,6 +156,11 @@
     return String(instructorA.name || "").localeCompare(String(instructorB.name || ""), "en-GB");
   }
 
+  function matchesTransmission(instructor) {
+    if (!preferredTransmission) return false;
+    return String(instructor.transmission || "").toLowerCase().includes(preferredTransmission);
+  }
+
   function instructorCard(instructor) {
     const phoneHref = instructor.phone ? instructor.phone.replace(/[^\d+]/g, "") : "";
     const phone = phoneHref ? `<a class="mt-3 inline-flex rounded-md bg-kerb px-3 py-2 text-sm font-black text-road transition hover:bg-signal hover:text-ink" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(instructor.phone)}</a>` : "";
@@ -160,9 +169,10 @@
       ? `<img class="h-16 w-16 shrink-0 rounded-md object-cover" src="${imageUrl}" alt="${escapeHtml(instructor.name)}" loading="lazy" decoding="async">`
       : `<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-kerb text-lg font-black text-road">${escapeHtml(initials(instructor.name))}</div>`;
     const profileHref = `../instructors/?instructor=${encodeURIComponent(instructor.slug || slugify(instructor.name))}`;
+    const highlighted = matchesTransmission(instructor);
 
     return `
-      <article class="rounded-md border border-ink/10 p-4 transition hover:border-leaf hover:shadow-md">
+      <article class="rounded-md border border-ink/10 p-4 transition hover:border-leaf hover:shadow-md ${highlighted ? "instructor-match instructor-match-pulse" : ""}">
         <a class="block" href="${profileHref}" aria-label="View ${escapeHtml(instructor.name)} profile">
           <div class="flex gap-4">
             ${photo}
@@ -170,6 +180,7 @@
               <div class="flex flex-wrap items-center gap-2">
                 <h4 class="text-lg font-black">${escapeHtml(instructor.name)}</h4>
                 <span class="rounded bg-kerb px-2 py-1 text-xs font-bold text-road">${escapeHtml(instructor.transmission || "Lessons")}</span>
+                ${highlighted ? `<span class="rounded bg-signal px-2 py-1 text-xs font-black text-ink">Match</span>` : ""}
               </div>
               <p class="mt-2 text-sm font-bold text-leaf">${escapeHtml(instructorAreaLabel(instructor))}</p>
             </div>
@@ -201,6 +212,18 @@
     const matching = instructors
       .filter((instructor) => instructorMapKeys(instructor).includes(selectedArea))
       .sort(sortPublicInstructors);
+    const transmissionMatches = matching.filter(matchesTransmission);
+    if (instructorMatchMessage) {
+      if (preferredTransmission) {
+        instructorMatchMessage.textContent = transmissionMatches.length
+          ? `${transmissionMatches.length} ${preferredTransmission} match${transmissionMatches.length === 1 ? "" : "es"} highlighted. Tap a card to view the instructor profile.`
+          : `No ${preferredTransmission} match is listed for ${areaLabels[selectedArea]} yet.`;
+        instructorMatchMessage.classList.remove("hidden");
+      } else {
+        instructorMatchMessage.classList.add("hidden");
+      }
+    }
+
     if (matching.length === 0) {
       instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check availability for ${areaLabels[selectedArea]}.</div>`;
       return;
@@ -209,10 +232,46 @@
     instructorList.innerHTML = matching.map(instructorCard).join("");
   }
 
-  function setSelectedArea(mapKey) {
+  function setSelectedArea(mapKey, options = {}) {
     if (!areaLabels[mapKey]) return;
     selectedArea = mapKey;
+    if (!options.keepTransmission) {
+      preferredTransmission = "";
+    }
     renderInstructors();
+  }
+
+  function matchArea(value) {
+    const normalized = String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+    const compact = normalized.replace(/\s+/g, "");
+
+    if (!normalized) return "";
+    if (normalized.includes("boomer") || normalized.includes("heath")) return "boomerheath";
+    if (normalized.includes("shawbury")) return "shawbury";
+    if (normalized.includes("telford") || /^tf/.test(compact)) return "telford";
+    if (normalized.includes("shrewsbury") || normalized.includes("minsterley") || normalized.includes("pontesbury")) return "shrewsbury";
+    if (/^sy4/.test(compact)) return "shawbury";
+    if (/^sy[1-3]/.test(compact)) return "shrewsbury";
+    return "";
+  }
+
+  function applyLessonFinder(formData) {
+    const area = matchArea(formData.get("lesson-postcode"));
+    preferredTransmission = String(formData.get("lesson-transmission") || "").toLowerCase();
+
+    if (!area) {
+      if (lessonFinderMessage) {
+        lessonFinderMessage.textContent = "We do not recognise that area yet. Call 0333 7720143 and we will check availability.";
+      }
+      return;
+    }
+
+    setSelectedArea(area, { keepTransmission: true });
+    document.querySelector("#areas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    if (lessonFinderMessage) {
+      lessonFinderMessage.textContent = `${areaLabels[area]} selected below. Matching ${preferredTransmission} instructors are highlighted.`;
+    }
   }
 
   async function loadInstructors(client) {
@@ -284,6 +343,11 @@
       event.preventDefault();
       setSelectedArea(area.dataset.mapKey);
     });
+  });
+
+  lessonFinder?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    applyLessonFinder(new FormData(lessonFinder));
   });
 
   if (mobileNavToggle && primaryNav) {

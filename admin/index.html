@@ -30,23 +30,24 @@
     <main class="mx-auto min-h-screen max-w-6xl px-5 py-5">
       <section class="rounded-md border border-ink/10 bg-white p-4 shadow-xl shadow-ink/8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <a class="inline-flex w-fit rounded-md bg-[#efeee3] px-3 py-2 shadow-sm ring-1 ring-ink/8" href="../home/" aria-label="KS Driving School home">
+          <a class="inline-flex w-fit rounded-md bg-white px-3 py-2 shadow-sm ring-1 ring-ink/8" href="../home/" aria-label="KS Driving School home">
             <img class="h-10 w-auto" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
           </a>
           <div class="sm:text-right">
             <h1 class="text-xl font-black tracking-normal text-road">Private admin</h1>
-            <p class="mt-1 text-sm leading-6 text-ink/65">Pass posts, reviews, instructors, map areas, and access.</p>
+            <p class="mt-1 text-sm leading-6 text-ink/65">Pass posts, reviews, instructors, lesson areas, and access.</p>
+            <a class="mt-2 inline-flex rounded-md border border-ink/15 px-3 py-2 text-xs font-black text-ink transition hover:border-leaf hover:text-leaf" href="../home/">Return home</a>
           </div>
         </div>
 
         <form id="login-form" class="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div class="relative">
             <label class="text-sm font-bold text-ink" for="email">Email</label>
-            <input class="mt-2 w-full rounded-md border border-white/15 bg-white px-4 py-3 text-ink outline-none focus:ring-2 focus:ring-signal" id="email" name="email" type="email" autocomplete="email" required>
+            <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="email" name="email" type="email" autocomplete="email" required>
           </div>
           <div>
             <label class="text-sm font-bold text-ink" for="password">Password</label>
-            <input class="mt-2 w-full rounded-md border border-white/15 bg-white px-4 py-3 text-ink outline-none focus:ring-2 focus:ring-signal" id="password" name="password" type="password" autocomplete="current-password" required>
+            <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="password" name="password" type="password" autocomplete="current-password" required>
           </div>
           <button class="rounded-md bg-signal px-5 py-3 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Sign in</button>
           <p id="login-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
@@ -137,7 +138,7 @@
           <div>
             <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Site settings</p>
             <h2 class="mt-2 text-3xl font-black tracking-normal">Public contact details</h2>
-            <p class="mt-2 text-sm leading-6 text-ink/68">These values are stored in Supabase and shown on the public website. They are public information, not secrets.</p>
+            <p class="mt-2 text-sm leading-6 text-ink/68">These values are shown on the public website. They are public information, not secrets.</p>
           </div>
 
           <form id="settings-form" class="mt-8 grid gap-5">
@@ -165,12 +166,26 @@
         </div>
 
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="instructors">
-          <div>
-            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Coverage map</p>
-            <h2 id="instructor-form-title" class="mt-2 text-3xl font-black tracking-normal">Instructors and areas</h2>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Coverage</p>
+              <h2 id="instructor-form-title" class="mt-2 text-3xl font-black tracking-normal">Instructors and areas</h2>
+            </div>
+            <button id="toggle-instructor-form" class="icon-action" type="button" aria-expanded="false" aria-controls="instructor-form-panel" aria-label="Add instructor">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
           </div>
 
-          <form id="instructor-form" class="mt-8 grid gap-5">
+          <div id="instructor-list-panel">
+            <div class="mt-8 flex items-center justify-between gap-4">
+              <h3 class="text-2xl font-black tracking-normal">Current instructors</h3>
+              <button id="refresh-instructors" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+            </div>
+            <div id="admin-instructors" class="mt-5 grid gap-4"></div>
+          </div>
+
+          <div id="instructor-form-panel" class="mt-8 hidden border-t border-ink/10 pt-8">
+          <form id="instructor-form" class="grid gap-5">
             <input id="instructor-id" name="instructor-id" type="hidden">
             <input id="instructor-current-photo-path" name="instructor-current-photo-path" type="hidden">
             <div class="grid gap-5 sm:grid-cols-2">
@@ -179,7 +194,7 @@
                 <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-name" name="instructor-name" type="text" maxlength="90" placeholder="e.g. Karen Jones" required>
               </div>
               <fieldset class="sm:col-span-2">
-                <legend class="text-sm font-bold">Map areas</legend>
+                <legend class="text-sm font-bold">Lesson areas</legend>
                 <div id="map-keys" class="mt-2 grid gap-2 sm:grid-cols-2">
                   <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink transition has-[:checked]:border-leaf has-[:checked]:bg-kerb">
                     <input class="h-5 w-5 rounded border-ink/20 text-leaf" name="map-keys" type="checkbox" value="shrewsbury" checked>
@@ -241,22 +256,31 @@
             </div>
             <p id="instructor-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
           </form>
-
-          <div class="mt-8 flex items-center justify-between gap-4">
-            <h3 class="text-2xl font-black tracking-normal">Current instructors</h3>
-            <button id="refresh-instructors" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
-          <div id="admin-instructors" class="mt-5 grid gap-4"></div>
         </div>
 
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="admins">
-          <div>
-            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Private access</p>
-            <h2 class="mt-2 text-3xl font-black tracking-normal">Admin users</h2>
-            <p class="mt-2 text-sm leading-6 text-ink/68">Create Supabase Auth users for instructors or staff who need access to this admin area. Temporary passwords should be shared privately.</p>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Private access</p>
+              <h2 class="mt-2 text-3xl font-black tracking-normal">Admin users</h2>
+              <p class="mt-2 text-sm leading-6 text-ink/68">Create users for instructors or staff who need access to this admin area. Temporary passwords should be shared privately.</p>
+            </div>
+            <button id="toggle-admin-user-form" class="icon-action" type="button" aria-expanded="false" aria-controls="admin-user-form-panel" aria-label="Add admin">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
           </div>
 
-          <form id="admin-user-form" class="mt-8 grid gap-5 rounded-md border border-ink/10 p-5">
+          <div id="admin-user-list-panel">
+            <div class="mt-8 flex items-center justify-between gap-4">
+              <h3 class="text-2xl font-black tracking-normal">Current admins</h3>
+              <button id="refresh-admin-users" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+            </div>
+            <div id="admin-users" class="mt-5 grid gap-4"></div>
+          </div>
+
+          <div id="admin-user-form-panel" class="mt-8 hidden border-t border-ink/10 pt-8">
+          <form id="admin-user-form" class="grid gap-5 rounded-md border border-ink/10 p-5">
             <input id="admin-user-id" name="admin-user-id" type="hidden">
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
@@ -295,12 +319,7 @@
             </div>
             <p id="admin-user-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
           </form>
-
-          <div class="mt-8 flex items-center justify-between gap-4">
-            <h3 class="text-2xl font-black tracking-normal">Current admins</h3>
-            <button id="refresh-admin-users" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
-          <div id="admin-users" class="mt-5 grid gap-4"></div>
         </div>
       </section>
     </main>

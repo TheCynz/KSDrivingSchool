@@ -28,11 +28,16 @@
     message.classList.toggle("text-red-700", Boolean(isError));
   }
 
+  function safeEmail(value, fallback) {
+    const email = String(value || "").trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : fallback;
+  }
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const site = window.KS_SITE || {};
-    const adminEmail = site.email || "ksdrivingschool66@gmail.com";
+    const adminEmail = safeEmail(site.email, "ksdrivingschool66@gmail.com");
     const formData = new FormData(form);
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
