@@ -3,8 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Contact KS Driving School to book driving lessons, ask about availability, or message the instructor directly.">
-    <title>Contact KS Driving School</title>
+    <meta name="description" content="Contact KS Driving School to book driving lessons in Shrewsbury, Telford, Shawbury and Boomerheath. Call, email or send your postcode and lesson enquiry.">
+    <meta name="robots" content="index,follow">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://bqlqkuxmrahfghbbrbxt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self' mailto:">
+    <title>Contact KS Driving School | Book Driving Lessons</title>
+    <link rel="canonical" href="https://ks-driving-school.co.uk/contact/">
+    <meta property="og:locale" content="en_GB">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="KS Driving School">
+    <meta property="og:title" content="Contact KS Driving School | Book Driving Lessons">
+    <meta property="og:description" content="Book driving lessons in Shrewsbury, Telford and nearby Shropshire areas. Call, email or send your postcode.">
+    <meta property="og:url" content="https://ks-driving-school.co.uk/contact/">
+    <meta property="og:image" content="https://ks-driving-school.co.uk/assets/hero-blue-car.jpg">
+    <meta name="twitter:card" content="summary_large_image">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -25,19 +37,39 @@
       };
     </script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css">
+    <link rel="stylesheet" href="../assets/styles.css?v=compact-nav-mapkeys">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "url": "https://ks-driving-school.co.uk/contact/",
+        "name": "Contact KS Driving School",
+        "description": "Contact KS Driving School to book driving lessons in Shrewsbury, Telford and nearby Shropshire areas.",
+        "mainEntity": {
+          "@type": ["LocalBusiness", "DrivingSchool"],
+          "name": "KS Driving School",
+          "telephone": "+443337720143",
+          "email": "ksdrivingschool66@gmail.com",
+          "url": "https://ks-driving-school.co.uk/",
+          "areaServed": ["Shrewsbury", "Telford", "Shawbury", "Boomerheath", "Shropshire"]
+        }
+      }
+    </script>
   </head>
   <body class="bg-kerb text-ink antialiased">
     <header class="border-b border-ink/10 bg-white shadow-sm">
-      <nav class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-5">
         <a class="block" href="../home/" aria-label="KS Driving School home">
-          <img class="h-14 w-auto" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
+          <img class="h-10 w-auto sm:h-12" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
         </a>
-        <div class="flex w-full items-center justify-between gap-2 text-sm font-black sm:w-auto sm:justify-end sm:gap-4">
+        <button id="mobile-nav-toggle" class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-ink/12 text-road transition hover:bg-kerb sm:hidden" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Open navigation">
+          <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        </button>
+        <div id="primary-nav" class="hidden w-full flex-col gap-2 border-t border-ink/10 pt-3 text-sm font-black sm:flex sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-4 sm:border-t-0 sm:pt-0">
           <a class="text-ink transition hover:text-leaf" href="../home/#areas">Areas</a>
           <a class="text-ink transition hover:text-leaf" href="../home/#passes">Passes</a>
           <a class="text-leaf" href="../contact/">Contact</a>
-          <a class="rounded-md bg-signal px-3 py-2 text-ink shadow-sm transition hover:bg-road hover:text-white sm:px-4" href="../home/#book">Book</a>
+          <a class="rounded-md bg-signal px-3 py-2 text-center text-ink shadow-sm transition hover:bg-road hover:text-white sm:px-4" href="../home/#book">Book</a>
         </div>
       </nav>
     </header>
@@ -76,7 +108,7 @@
               <label class="text-sm font-bold" for="message">Message</label>
               <textarea class="mt-2 min-h-40 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="message" name="message" required>I would like to book driving lessons. Please let me know your availability.</textarea>
             </div>
-            <button class="mt-5 w-full rounded-md bg-ink px-5 py-4 font-black text-white transition hover:bg-leaf sm:w-auto" type="submit">Email the instructor</button>
+            <button class="mt-5 w-full rounded-md bg-signal px-5 py-4 font-black text-ink shadow-sm transition hover:bg-road hover:text-white sm:w-auto" type="submit">Email the instructor</button>
             <p id="contact-message" class="mt-4 min-h-6 text-sm text-ink/65" role="status"></p>
           </form>
 
@@ -112,7 +144,7 @@
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"></path></svg>
           </a>
           <a class="footer-icon-link" href="mailto:ksdrivingschool66@gmail.com" aria-label="Email KS Driving School">
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path></svg>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"></path><path d="m22 7-10 6L2 7"></path></svg>
           </a>
           <a class="footer-icon-link" data-facebook-link href="https://www.facebook.com/drivinglessonsshrewsbury/" target="_blank" rel="noopener" aria-label="Facebook">
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.6.4-1 1-1Z"></path></svg>
@@ -125,7 +157,9 @@
     </footer>
 
     <script src="../assets/site-config.js"></script>
-    <script src="../assets/site.js"></script>
-    <script src="../assets/contact.js"></script>
+    <script src="../assets/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/site.js?v=footer-icons"></script>
+    <script src="contact.js?v=compact-nav"></script>
   </body>
 </html>

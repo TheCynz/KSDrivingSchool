@@ -4,6 +4,8 @@
   const selectedAreaTitle = document.querySelector("#selected-area-title");
   const areaTabs = Array.from(document.querySelectorAll(".area-tab"));
   const mapAreas = Array.from(document.querySelectorAll(".map-area"));
+  const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
+  const primaryNav = document.querySelector("#primary-nav");
   let selectedArea = "shrewsbury";
   let instructors = [];
 
@@ -17,45 +19,51 @@
   const fallbackInstructors = [
     {
       name: "Karen Jones",
-      area: "Shrewsbury and Shawbury",
-      map_key: "shrewsbury",
+      map_keys: ["shrewsbury", "shawbury", "telford"],
       transmission: "Manual",
       phone: "07931 673337",
+      slug: "karen-jones",
+      photo_url: "",
       bio: "Grade A instructor covering Shrewsbury, Shawbury and nearby villages."
     },
     {
       name: "Adam Snaith",
-      area: "Telford",
-      map_key: "telford",
+      map_keys: ["telford"],
       transmission: "Manual",
       phone: "07555 618618",
+      slug: "adam-snaith",
+      photo_url: "",
       bio: "Telford instructor for learners preparing on local test routes."
     },
     {
       name: "Vanessa Marmont",
-      area: "Shrewsbury, Minsterley and Pontesbury",
-      map_key: "shrewsbury",
+      map_keys: ["shrewsbury"],
       transmission: "Manual",
       phone: "0333 7720143",
+      slug: "vanessa-marmont",
+      photo_url: "",
       bio: "Experienced instructor covering Shrewsbury and surrounding villages."
     },
     {
       name: "Shawbury coverage",
-      area: "Shawbury",
-      map_key: "shawbury",
+      map_keys: ["shawbury"],
       transmission: "Manual and automatic",
       phone: "0333 7720143",
+      slug: "shawbury-coverage",
+      photo_url: "",
       bio: "Call the office to match with the right available instructor."
     },
     {
       name: "Boomerheath coverage",
-      area: "Boomerheath",
-      map_key: "boomerheath",
+      map_keys: ["boomerheath"],
       transmission: "Manual and automatic",
       phone: "0333 7720143",
+      slug: "boomerheath-coverage",
+      photo_url: "",
       bio: "Nearby Shropshire lessons arranged through the office."
     }
   ];
+  const safeUrlPattern = /^(https?:)?\/\//i;
 
   function hasSupabaseConfig() {
     return window.KS_SUPABASE &&
@@ -89,10 +97,11 @@
     const studentName = escapeHtml(post.student_name);
     const caption = escapeHtml(post.caption || "Student passed with no faults.");
     const review = post.review ? `<blockquote class="mt-4 border-l-4 border-signal pl-4 text-sm font-bold leading-6 text-ink/80">"${escapeHtml(post.review)}"</blockquote>` : "";
+    const imageUrl = safeUrlPattern.test(post.image_url) ? escapeHtml(post.image_url) : "";
 
     return `
       <article class="overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-ink/8">
-        <img class="gallery-image h-auto w-full object-cover" src="${post.image_url}" alt="${studentName} passed their driving test">
+        <img class="gallery-image h-auto w-full object-cover" src="${imageUrl}" alt="${studentName} passed their driving test" loading="lazy" decoding="async">
         <div class="p-5">
           <p class="text-sm font-bold text-leaf">${date}</p>
           <h3 class="mt-2 text-xl font-black">${studentName}</h3>
@@ -103,18 +112,73 @@
     `;
   }
 
+  function initials(name) {
+    return String(name)
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "KS";
+  }
+
+  function slugify(value) {
+    return String(value)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "instructor";
+  }
+
+  function instructorMapKeys(instructor) {
+    if (Array.isArray(instructor.map_keys) && instructor.map_keys.length > 0) {
+      return instructor.map_keys.filter((key) => areaLabels[key]);
+    }
+    return [];
+  }
+
+  function instructorAreaLabel(instructor) {
+    const labels = instructorMapKeys(instructor).map((key) => areaLabels[key]);
+    return labels.length > 0 ? labels.join(", ") : "Shropshire";
+  }
+
+  function instructorSortValue(instructor) {
+    return slugify(instructor.slug || instructor.name) === "karen-jones" ? 0 : 1;
+  }
+
+  function sortPublicInstructors(instructorA, instructorB) {
+    const ownerOrder = instructorSortValue(instructorA) - instructorSortValue(instructorB);
+    if (ownerOrder !== 0) return ownerOrder;
+    return String(instructorA.name || "").localeCompare(String(instructorB.name || ""), "en-GB");
+  }
+
   function instructorCard(instructor) {
-    const phone = instructor.phone ? `<a class="mt-3 inline-flex rounded-md bg-kerb px-3 py-2 text-sm font-black text-road transition hover:bg-signal hover:text-ink" href="tel:${escapeHtml(instructor.phone.replace(/\s+/g, ""))}">${escapeHtml(instructor.phone)}</a>` : "";
+    const phoneHref = instructor.phone ? instructor.phone.replace(/[^\d+]/g, "") : "";
+    const phone = phoneHref ? `<a class="mt-3 inline-flex rounded-md bg-kerb px-3 py-2 text-sm font-black text-road transition hover:bg-signal hover:text-ink" href="tel:${escapeHtml(phoneHref)}">${escapeHtml(instructor.phone)}</a>` : "";
+    const imageUrl = instructor.photo_url && safeUrlPattern.test(instructor.photo_url) ? escapeHtml(instructor.photo_url) : "";
+    const photo = imageUrl
+      ? `<img class="h-16 w-16 shrink-0 rounded-md object-cover" src="${imageUrl}" alt="${escapeHtml(instructor.name)}" loading="lazy" decoding="async">`
+      : `<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-kerb text-lg font-black text-road">${escapeHtml(initials(instructor.name))}</div>`;
+    const profileHref = `../instructors/?instructor=${encodeURIComponent(instructor.slug || slugify(instructor.name))}`;
 
     return `
-      <article class="rounded-md border border-ink/10 p-4">
-        <div class="flex flex-wrap items-center gap-2">
-          <h4 class="text-lg font-black">${escapeHtml(instructor.name)}</h4>
-          <span class="rounded bg-kerb px-2 py-1 text-xs font-bold text-road">${escapeHtml(instructor.transmission || "Lessons")}</span>
+      <article class="rounded-md border border-ink/10 p-4 transition hover:border-leaf hover:shadow-md">
+        <a class="block" href="${profileHref}" aria-label="View ${escapeHtml(instructor.name)} profile">
+          <div class="flex gap-4">
+            ${photo}
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h4 class="text-lg font-black">${escapeHtml(instructor.name)}</h4>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold text-road">${escapeHtml(instructor.transmission || "Lessons")}</span>
+              </div>
+              <p class="mt-2 text-sm font-bold text-leaf">${escapeHtml(instructorAreaLabel(instructor))}</p>
+            </div>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-ink/70">${escapeHtml(instructor.bio || "Call the office to check current availability.")}</p>
+        </a>
+        <div>
+          ${phone}
         </div>
-        <p class="mt-2 text-sm font-bold text-leaf">${escapeHtml(instructor.area)}</p>
-        <p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(instructor.bio || "Call the office to check current availability.")}</p>
-        ${phone}
       </article>
     `;
   }
@@ -134,13 +198,21 @@
       area.classList.toggle("map-area-active", area.dataset.mapKey === selectedArea);
     });
 
-    const matching = instructors.filter((instructor) => instructor.map_key === selectedArea);
+    const matching = instructors
+      .filter((instructor) => instructorMapKeys(instructor).includes(selectedArea))
+      .sort(sortPublicInstructors);
     if (matching.length === 0) {
       instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check availability for ${areaLabels[selectedArea]}.</div>`;
       return;
     }
 
     instructorList.innerHTML = matching.map(instructorCard).join("");
+  }
+
+  function setSelectedArea(mapKey) {
+    if (!areaLabels[mapKey]) return;
+    selectedArea = mapKey;
+    renderInstructors();
   }
 
   async function loadInstructors(client) {
@@ -154,9 +226,8 @@
 
     const { data, error } = await client
       .from("instructors")
-      .select("name, area, map_key, transmission, phone, bio")
+      .select("name, map_keys, transmission, phone, bio, slug, photo_url")
       .eq("active", true)
-      .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
 
     instructors = error || !data || data.length === 0 ? fallbackInstructors : data;
@@ -166,9 +237,10 @@
   async function loadPosts() {
     if (!gallery) return;
 
-    if (!hasSupabaseConfig()) {
+    loadInstructors(null);
+
+    if (!hasSupabaseConfig() || !window.supabase) {
       renderPassPlaceholder();
-      loadInstructors(null);
       return;
     }
 
@@ -196,17 +268,40 @@
 
   areaTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      selectedArea = tab.dataset.mapKey;
-      renderInstructors();
+      setSelectedArea(tab.dataset.mapKey);
     });
   });
 
   mapAreas.forEach((area) => {
+    area.setAttribute("role", "button");
+    area.setAttribute("tabindex", "0");
+    area.setAttribute("aria-label", `${areaLabels[area.dataset.mapKey]} instructors`);
     area.addEventListener("click", () => {
-      selectedArea = area.dataset.mapKey;
-      renderInstructors();
+      setSelectedArea(area.dataset.mapKey);
+    });
+    area.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      setSelectedArea(area.dataset.mapKey);
     });
   });
+
+  if (mobileNavToggle && primaryNav) {
+    mobileNavToggle.addEventListener("click", () => {
+      const expanded = mobileNavToggle.getAttribute("aria-expanded") === "true";
+      mobileNavToggle.setAttribute("aria-expanded", String(!expanded));
+      primaryNav.classList.toggle("hidden", expanded);
+      primaryNav.classList.toggle("flex", !expanded);
+    });
+
+    primaryNav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        mobileNavToggle.setAttribute("aria-expanded", "false");
+        primaryNav.classList.add("hidden");
+        primaryNav.classList.remove("flex");
+      });
+    });
+  }
 
   loadPosts();
 })();

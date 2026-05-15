@@ -1,33 +1,89 @@
 (function () {
-  const site = window.KS_SITE || {};
+  const site = { ...(window.KS_SITE || {}) };
   const cookieKey = "ks_cookie_consent";
 
-  document.querySelectorAll("[data-current-year]").forEach((element) => {
-    element.textContent = new Date().getFullYear();
-  });
+  function hasSupabaseConfig() {
+    return window.supabase &&
+      window.KS_SUPABASE &&
+      !window.KS_SUPABASE.url.includes("YOUR_PROJECT_REF") &&
+      !window.KS_SUPABASE.publishableKey.includes("YOUR_SUPABASE");
+  }
 
-  document.querySelectorAll("[data-phone-link]").forEach((element) => {
-    element.href = `tel:${site.phoneHref || "+443337720143"}`;
-    element.textContent = element.dataset.phoneLabel || site.phoneDisplay || "0333 7720143";
-  });
+  function toCamelKey(key) {
+    return key.replace(/_([a-z])/g, (_match, letter) => letter.toUpperCase());
+  }
 
-  document.querySelectorAll("[data-email-link]").forEach((element) => {
-    const subject = element.dataset.emailSubject || "Driving lesson enquiry";
-    const email = site.email || "ksdrivingschool66@gmail.com";
-    element.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-    element.textContent = element.dataset.emailLabel || email;
-  });
+  function applySiteConfig() {
+    document.querySelectorAll("[data-current-year]").forEach((element) => {
+      element.textContent = new Date().getFullYear();
+    });
 
-  document.querySelectorAll("[data-facebook-link]").forEach((element) => {
-    element.href = site.facebookUrl || "https://www.facebook.com/drivinglessonsshrewsbury/";
-  });
+    document.querySelectorAll("[data-phone-link]").forEach((element) => {
+      const phoneDisplay = site.phoneDisplay || "0333 7720143";
+      element.href = `tel:${site.phoneHref || "+443337720143"}`;
+      if (element.dataset.phoneLabel || element.children.length === 0) {
+        element.textContent = element.dataset.phoneLabel || phoneDisplay;
+      }
+    });
+
+    document.querySelectorAll("[data-email-link]").forEach((element) => {
+      const subject = element.dataset.emailSubject || "Driving lesson enquiry";
+      const email = site.email || "ksdrivingschool66@gmail.com";
+      element.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+      if (element.dataset.emailLabel || element.children.length === 0) {
+        element.textContent = element.dataset.emailLabel || email;
+      }
+    });
+
+    document.querySelectorAll("[data-facebook-link]").forEach((element) => {
+      element.href = site.facebookUrl || "https://www.facebook.com/drivinglessonsshrewsbury/";
+    });
+  }
+
+  async function loadRemoteSiteSettings() {
+    if (!hasSupabaseConfig()) return;
+
+    const client = window.supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+    const { data, error } = await client
+      .from("site_settings")
+      .select("key, value")
+      .eq("public", true);
+
+    if (error || !data) return;
+
+    data.forEach((setting) => {
+      site[toCamelKey(setting.key)] = setting.value;
+    });
+    window.KS_SITE = site;
+    applySiteConfig();
+  }
 
   function applyCookieChoice(choice) {
     window.KS_COOKIE_CONSENT = choice;
   }
 
+  function writeConsentCookie(choice) {
+    const maxAge = 60 * 60 * 24 * 180;
+    document.cookie = `${cookieKey}=${encodeURIComponent(JSON.stringify(choice))}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+  }
+
+  function readConsentCookie() {
+    const match = document.cookie
+      .split("; ")
+      .find((item) => item.startsWith(`${cookieKey}=`));
+
+    if (!match) return null;
+
+    try {
+      return JSON.parse(decodeURIComponent(match.slice(cookieKey.length + 1)));
+    } catch (_error) {
+      return null;
+    }
+  }
+
   function saveCookieChoice(choice) {
     localStorage.setItem(cookieKey, JSON.stringify(choice));
+    writeConsentCookie(choice);
     applyCookieChoice(choice);
     document.querySelector("[data-cookie-banner]")?.remove();
   }
@@ -35,14 +91,18 @@
   function readCookieChoice() {
     try {
       const stored = localStorage.getItem(cookieKey);
-      return stored ? JSON.parse(stored) : null;
+      if (stored) return JSON.parse(stored);
     } catch (_error) {
-      return null;
+      localStorage.removeItem(cookieKey);
     }
+
+    return readConsentCookie();
   }
 
   function showCookieBanner() {
     document.querySelector("[data-cookie-banner]")?.remove();
+    const savedChoice = readCookieChoice();
+    const analyticsChecked = savedChoice ? Boolean(savedChoice.analytics) : true;
 
     const banner = document.createElement("section");
     banner.setAttribute("data-cookie-banner", "");
@@ -53,7 +113,7 @@
           <p class="text-base font-black">Cookies on KS Driving School</p>
           <p class="mt-1 text-sm leading-6 text-ink/70">We use essential cookies to make this site work. With your permission, we can also use analytics cookies later to understand which pages help learners book lessons.</p>
           <label class="mt-3 flex items-center gap-2 text-sm font-bold">
-            <input data-cookie-analytics type="checkbox" class="h-4 w-4 rounded border-ink/20 text-leaf">
+            <input data-cookie-analytics type="checkbox" class="h-4 w-4 rounded border-ink/20 text-leaf" ${analyticsChecked ? "checked" : ""}>
             Allow analytics cookies
           </label>
         </div>
@@ -94,4 +154,7 @@
   } else {
     showCookieBanner();
   }
+
+  applySiteConfig();
+  loadRemoteSiteSettings();
 })();

@@ -1,6 +1,25 @@
 (function () {
   const form = document.querySelector("#contact-form");
   const message = document.querySelector("#contact-message");
+  const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
+  const primaryNav = document.querySelector("#primary-nav");
+
+  if (mobileNavToggle && primaryNav) {
+    mobileNavToggle.addEventListener("click", () => {
+      const expanded = mobileNavToggle.getAttribute("aria-expanded") === "true";
+      mobileNavToggle.setAttribute("aria-expanded", String(!expanded));
+      primaryNav.classList.toggle("hidden", expanded);
+      primaryNav.classList.toggle("flex", !expanded);
+    });
+
+    primaryNav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        mobileNavToggle.setAttribute("aria-expanded", "false");
+        primaryNav.classList.add("hidden");
+        primaryNav.classList.remove("flex");
+      });
+    });
+  }
 
   if (!form) return;
 

@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://bqlqkuxmrahfghbbrbxt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>KS Driving School Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -22,47 +24,74 @@
       };
     </script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css">
+    <link rel="stylesheet" href="../assets/styles.css?v=compact-nav-mapkeys">
   </head>
   <body class="min-h-screen bg-kerb text-ink antialiased">
-    <main class="mx-auto grid min-h-screen max-w-6xl gap-8 px-5 py-8 lg:grid-cols-[420px_1fr]">
-      <section class="self-start rounded-md bg-road p-7 text-white shadow-xl shadow-ink/10">
-        <a class="inline-flex rounded-md bg-[#efeee3] px-3 py-2 shadow-sm" href="../home/" aria-label="KS Driving School home">
-          <img class="h-14 w-auto" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
-        </a>
-        <h1 class="mt-5 text-3xl font-black tracking-normal">Private admin</h1>
-        <p class="mt-3 leading-7 text-white/75">Sign in to manage pass posts, reviews, instructor coverage, and map areas.</p>
+    <main class="mx-auto min-h-screen max-w-6xl px-5 py-5">
+      <section class="rounded-md border border-ink/10 bg-white p-4 shadow-xl shadow-ink/8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <a class="inline-flex w-fit rounded-md bg-[#efeee3] px-3 py-2 shadow-sm ring-1 ring-ink/8" href="../home/" aria-label="KS Driving School home">
+            <img class="h-10 w-auto" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
+          </a>
+          <div class="sm:text-right">
+            <h1 class="text-xl font-black tracking-normal text-road">Private admin</h1>
+            <p class="mt-1 text-sm leading-6 text-ink/65">Pass posts, reviews, instructors, map areas, and access.</p>
+          </div>
+        </div>
 
-        <form id="login-form" class="mt-8 space-y-4">
-          <div>
-            <label class="text-sm font-bold" for="email">Email</label>
+        <form id="login-form" class="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <div class="relative">
+            <label class="text-sm font-bold text-ink" for="email">Email</label>
             <input class="mt-2 w-full rounded-md border border-white/15 bg-white px-4 py-3 text-ink outline-none focus:ring-2 focus:ring-signal" id="email" name="email" type="email" autocomplete="email" required>
           </div>
           <div>
-            <label class="text-sm font-bold" for="password">Password</label>
+            <label class="text-sm font-bold text-ink" for="password">Password</label>
             <input class="mt-2 w-full rounded-md border border-white/15 bg-white px-4 py-3 text-ink outline-none focus:ring-2 focus:ring-signal" id="password" name="password" type="password" autocomplete="current-password" required>
           </div>
-          <button class="w-full rounded-md bg-signal px-5 py-3 font-black text-ink transition hover:bg-white" type="submit">Sign in</button>
-          <p id="login-message" class="min-h-6 text-sm text-white/75" role="status"></p>
+          <button class="rounded-md bg-signal px-5 py-3 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Sign in</button>
+          <p id="login-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
         </form>
 
-        <div id="session-panel" class="mt-8 hidden rounded-md border border-white/15 p-4">
-          <p class="text-sm text-white/70">Signed in as</p>
-          <p id="session-email" class="break-all font-bold"></p>
-          <button id="sign-out" class="mt-4 rounded-md border border-white/25 px-4 py-2 text-sm font-bold transition hover:bg-white/10" type="button">Sign out</button>
+        <div id="session-panel" class="mt-4 hidden rounded-md border border-ink/10 bg-kerb p-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[.16em] text-leaf">Signed in</p>
+            <p id="session-email" class="break-all text-sm font-bold text-ink"></p>
+          </div>
+          <button id="sign-out" class="rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" type="button">Sign out</button>
         </div>
       </section>
 
-      <section id="admin-panel" class="hidden">
-        <div class="rounded-md bg-white p-7 shadow-xl shadow-ink/10">
+      <section id="admin-panel" class="mt-6 hidden">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button">
+            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Passes</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Add, edit, publish, or delete pass gallery posts.</p>
+          </button>
+          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="settings" type="button">
+            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Site settings</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Update public phone, email, and Facebook links.</p>
+          </button>
+          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="instructors" type="button">
+            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Instructors</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Manage instructor profiles, photos, and areas.</p>
+          </button>
+          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="admins" type="button">
+            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Admins</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Create admins, reset passwords, and remove access.</p>
+          </button>
+        </div>
+
+        <div class="admin-view mt-6 rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="passes">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">New post</p>
-              <h2 class="mt-2 text-3xl font-black tracking-normal">Student passed with no faults</h2>
+              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Pass gallery</p>
+              <h2 id="post-form-title" class="mt-2 text-3xl font-black tracking-normal">Student passed with no faults</h2>
             </div>
           </div>
 
           <form id="post-form" class="mt-8 grid gap-5">
+            <input id="post-id" name="post-id" type="hidden">
+            <input id="post-image-path" name="post-image-path" type="hidden">
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
                 <label class="text-sm font-bold" for="student-name">Student name</label>
@@ -84,76 +113,132 @@
             <div>
               <label class="text-sm font-bold" for="photo">Photo</label>
               <input class="mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 file:mr-4 file:rounded-md file:border-0 file:bg-signal file:px-4 file:py-2 file:font-bold file:text-ink" id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required>
-              <p class="mt-2 text-sm text-ink/60">JPEG, PNG, or WebP. Keep student consent on file before publishing.</p>
+              <p id="post-photo-help" class="mt-2 text-sm text-ink/60">JPEG, PNG, or WebP. Keep student consent on file before publishing.</p>
             </div>
             <label class="flex items-center gap-3 text-sm font-bold">
               <input id="published" name="published" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
               Publish immediately
             </label>
-            <button class="rounded-md bg-ink px-5 py-4 font-black text-white transition hover:bg-leaf" type="submit">Upload post</button>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="post-submit" class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Upload post</button>
+              <button id="post-cancel-edit" class="hidden rounded-md border border-ink/15 px-5 py-4 font-black text-ink transition hover:border-leaf hover:text-leaf" type="button">Cancel edit</button>
+            </div>
             <p id="post-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
           </form>
-        </div>
 
-        <div class="mt-6 rounded-md bg-white p-7 shadow-xl shadow-ink/10">
-          <div class="flex items-center justify-between gap-4">
-            <h2 class="text-2xl font-black tracking-normal">Existing posts</h2>
+          <div class="mt-8 flex items-center justify-between gap-4">
+            <h3 class="text-2xl font-black tracking-normal">Existing posts</h3>
             <button id="refresh-posts" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
           <div id="admin-posts" class="mt-5 grid gap-4"></div>
         </div>
 
-        <div class="mt-6 rounded-md bg-white p-7 shadow-xl shadow-ink/10">
+        <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="settings">
+          <div>
+            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Site settings</p>
+            <h2 class="mt-2 text-3xl font-black tracking-normal">Public contact details</h2>
+            <p class="mt-2 text-sm leading-6 text-ink/68">These values are stored in Supabase and shown on the public website. They are public information, not secrets.</p>
+          </div>
+
+          <form id="settings-form" class="mt-8 grid gap-5">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label class="text-sm font-bold" for="setting-phone-display">Displayed phone</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="setting-phone-display" name="phone_display" type="text" maxlength="80" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="setting-phone-href">Telephone link</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="setting-phone-href" name="phone_href" type="tel" maxlength="80" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="setting-email">Email</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="setting-email" name="email" type="email" maxlength="120" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="setting-facebook-url">Facebook URL</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="setting-facebook-url" name="facebook_url" type="url" maxlength="500" required>
+              </div>
+            </div>
+            <button class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Save site settings</button>
+            <p id="settings-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
+          </form>
+        </div>
+
+        <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="instructors">
           <div>
             <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Coverage map</p>
-            <h2 class="mt-2 text-3xl font-black tracking-normal">Instructors and areas</h2>
+            <h2 id="instructor-form-title" class="mt-2 text-3xl font-black tracking-normal">Instructors and areas</h2>
           </div>
 
           <form id="instructor-form" class="mt-8 grid gap-5">
+            <input id="instructor-id" name="instructor-id" type="hidden">
+            <input id="instructor-current-photo-path" name="instructor-current-photo-path" type="hidden">
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
                 <label class="text-sm font-bold" for="instructor-name">Instructor name</label>
                 <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-name" name="instructor-name" type="text" maxlength="90" placeholder="e.g. Karen Jones" required>
               </div>
-              <div>
-                <label class="text-sm font-bold" for="instructor-area">Display area</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-area" name="instructor-area" type="text" maxlength="120" placeholder="e.g. Shrewsbury and Shawbury" required>
-              </div>
-              <div>
-                <label class="text-sm font-bold" for="map-key">Map area</label>
-                <select class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="map-key" name="map-key" required>
-                  <option value="shrewsbury">Shrewsbury</option>
-                  <option value="telford">Telford</option>
-                  <option value="shawbury">Shawbury</option>
-                  <option value="boomerheath">Boomerheath</option>
-                </select>
-              </div>
+              <fieldset class="sm:col-span-2">
+                <legend class="text-sm font-bold">Map areas</legend>
+                <div id="map-keys" class="mt-2 grid gap-2 sm:grid-cols-2">
+                  <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink transition has-[:checked]:border-leaf has-[:checked]:bg-kerb">
+                    <input class="h-5 w-5 rounded border-ink/20 text-leaf" name="map-keys" type="checkbox" value="shrewsbury" checked>
+                    Shrewsbury
+                  </label>
+                  <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink transition has-[:checked]:border-leaf has-[:checked]:bg-kerb">
+                    <input class="h-5 w-5 rounded border-ink/20 text-leaf" name="map-keys" type="checkbox" value="telford">
+                    Telford
+                  </label>
+                  <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink transition has-[:checked]:border-leaf has-[:checked]:bg-kerb">
+                    <input class="h-5 w-5 rounded border-ink/20 text-leaf" name="map-keys" type="checkbox" value="shawbury">
+                    Shawbury
+                  </label>
+                  <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink transition has-[:checked]:border-leaf has-[:checked]:bg-kerb">
+                    <input class="h-5 w-5 rounded border-ink/20 text-leaf" name="map-keys" type="checkbox" value="boomerheath">
+                    Boomerheath
+                  </label>
+                </div>
+                <p class="mt-2 text-xs leading-5 text-ink/55">Select every area this instructor covers. These areas are shown on the public map and profile.</p>
+              </fieldset>
               <div>
                 <label class="text-sm font-bold" for="transmission">Transmission</label>
-                <select class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="transmission" name="transmission" required>
-                  <option>Manual</option>
-                  <option>Automatic</option>
-                  <option>Manual and automatic</option>
-                </select>
+                <div class="relative mt-2">
+                  <select class="admin-select w-full rounded-md border border-ink/15 bg-white px-4 py-3 pr-11 font-bold text-ink shadow-sm outline-none transition focus:border-leaf focus:ring-2 focus:ring-leaf/25" id="transmission" name="transmission" required>
+                    <option>Manual</option>
+                    <option>Automatic</option>
+                    <option>Manual and automatic</option>
+                  </select>
+                  <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-road">
+                    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.58l3.3-3.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.42Z"/></svg>
+                  </span>
+                </div>
               </div>
               <div>
                 <label class="text-sm font-bold" for="instructor-phone">Phone</label>
                 <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-phone" name="instructor-phone" type="tel" maxlength="40" placeholder="Optional direct number">
               </div>
-              <div>
-                <label class="text-sm font-bold" for="sort-order">Sort order</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="sort-order" name="sort-order" type="number" min="0" value="10">
+              <div class="sm:col-span-2">
+                <label class="text-sm font-bold" for="instructor-photo">Instructor photo</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-md file:border-0 file:bg-kerb file:px-4 file:py-2 file:font-bold file:text-road focus:ring-2 focus:ring-leaf" id="instructor-photo" name="instructor-photo" type="file" accept="image/jpeg,image/png,image/webp">
+                <p class="mt-2 text-xs leading-5 text-ink/55">JPEG, PNG, or WebP under 5MB. Leave blank if you do not have a profile photo yet.</p>
               </div>
             </div>
             <div>
               <label class="text-sm font-bold" for="instructor-bio">Short note</label>
               <textarea class="mt-2 min-h-24 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-bio" name="instructor-bio" maxlength="220" placeholder="e.g. Grade A instructor covering Shrewsbury, Shawbury and nearby villages."></textarea>
             </div>
+            <div>
+              <label class="text-sm font-bold" for="instructor-profile-bio">Profile description</label>
+              <textarea class="mt-2 min-h-36 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="instructor-profile-bio" name="instructor-profile-bio" maxlength="900" placeholder="A fuller description shown on the instructor profile page: teaching style, experience, areas covered, and what learners can expect."></textarea>
+            </div>
             <label class="flex items-center gap-3 text-sm font-bold">
               <input id="instructor-active" name="instructor-active" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
               Show on public map
             </label>
-            <button class="rounded-md bg-ink px-5 py-4 font-black text-white transition hover:bg-leaf" type="submit">Add instructor</button>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="instructor-submit" class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Add instructor</button>
+              <button id="instructor-cancel-edit" class="hidden rounded-md border border-ink/15 px-5 py-4 font-black text-ink transition hover:border-leaf hover:text-leaf" type="button">Cancel edit</button>
+            </div>
             <p id="instructor-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
           </form>
 
@@ -163,11 +248,65 @@
           </div>
           <div id="admin-instructors" class="mt-5 grid gap-4"></div>
         </div>
+
+        <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="admins">
+          <div>
+            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Private access</p>
+            <h2 class="mt-2 text-3xl font-black tracking-normal">Admin users</h2>
+            <p class="mt-2 text-sm leading-6 text-ink/68">Create Supabase Auth users for instructors or staff who need access to this admin area. Temporary passwords should be shared privately.</p>
+          </div>
+
+          <form id="admin-user-form" class="mt-8 grid gap-5 rounded-md border border-ink/10 p-5">
+            <input id="admin-user-id" name="admin-user-id" type="hidden">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label class="text-sm font-bold" for="admin-user-email">Email</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="admin-user-email" name="admin-user-email" type="email" maxlength="160" autocomplete="off" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="admin-user-name">Name</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="admin-user-name" name="admin-user-name" type="text" maxlength="120" autocomplete="off" placeholder="Optional">
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="admin-user-role">Role</label>
+                <div class="relative mt-2">
+                  <select class="admin-select w-full rounded-md border border-ink/15 bg-white px-4 py-3 pr-11 font-bold text-ink shadow-sm outline-none transition focus:border-leaf focus:ring-2 focus:ring-leaf/25" id="admin-user-role" name="admin-user-role">
+                    <option value="admin">Admin</option>
+                    <option value="owner">Owner</option>
+                  </select>
+                  <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-road">
+                    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.58l3.3-3.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.42Z"/></svg>
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="admin-user-password">Temporary password</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="admin-user-password" name="admin-user-password" type="password" minlength="6" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}" autocomplete="new-password" required>
+                <p id="admin-user-password-help" class="mt-2 text-xs leading-5 text-ink/55">Minimum 6 characters with lowercase, uppercase, digit, and symbol. Required when creating a new admin or resetting a password.</p>
+              </div>
+            </div>
+            <label class="flex items-center gap-3 text-sm font-bold">
+              <input id="admin-user-active" name="admin-user-active" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
+              Active admin access
+            </label>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="admin-user-submit" class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Create admin</button>
+              <button id="admin-user-cancel-edit" class="hidden rounded-md border border-ink/15 px-5 py-4 font-black text-ink transition hover:border-leaf hover:text-leaf" type="button">Cancel edit</button>
+            </div>
+            <p id="admin-user-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
+          </form>
+
+          <div class="mt-8 flex items-center justify-between gap-4">
+            <h3 class="text-2xl font-black tracking-normal">Current admins</h3>
+            <button id="refresh-admin-users" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+          </div>
+          <div id="admin-users" class="mt-5 grid gap-4"></div>
+        </div>
       </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/supabase-config.js"></script>
-    <script src="../assets/admin.js"></script>
+    <script src="admin.js?v=password-policy-no-sort"></script>
   </body>
 </html>
