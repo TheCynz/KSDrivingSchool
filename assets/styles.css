@@ -5,6 +5,62 @@ html {
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 36%) 0 1px, transparent 1px 28px),
+    linear-gradient(90deg, rgb(23 105 170 / 7%), transparent 34%, rgb(246 196 69 / 10%));
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: -1;
+}
+
+main > section:not(:first-child) {
+  content-visibility: auto;
+  contain-intrinsic-size: 760px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a,
+  button {
+    transition-duration: 180ms;
+    transition-property: background-color, border-color, box-shadow, color, opacity, transform;
+    transition-timing-function: ease;
+  }
+
+  a:hover,
+  button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.hero-panel {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(255 255 255 / 92%)),
+    linear-gradient(135deg, rgb(246 196 69 / 20%), rgb(23 105 170 / 12%));
+  border: 1px solid rgb(255 255 255 / 72%);
+}
+
+.hero-media {
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.glass-strip {
+  background: rgb(255 255 255 / 92%);
+  backdrop-filter: blur(14px);
+}
+
+.modern-card {
+  border: 1px solid rgb(23 33 29 / 8%);
+  box-shadow: 0 16px 42px rgb(23 33 29 / 8%);
+}
+
+.modern-card:hover {
+  box-shadow: 0 22px 54px rgb(23 33 29 / 12%);
 }
 
 .section-anchor {

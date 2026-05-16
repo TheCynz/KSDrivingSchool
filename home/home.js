@@ -15,6 +15,7 @@
     let selectedArea = "shrewsbury";
     let preferredTransmission = "";
     let instructors = [];
+    let cachedAvailableAreaKeys = [];
     const areaLabels = {
         shrewsbury: "Shrewsbury",
         telford: "Telford",
@@ -224,7 +225,7 @@
         return labels.length > 0 ? labels.join(", ") : "Shropshire";
     }
     function availableAreaKeys() {
-        return Object.keys(areaLabels).filter((key) => instructors.some((instructor) => instructorMapKeys(instructor).includes(key)));
+        return cachedAvailableAreaKeys;
     }
     function instructorSortValue(instructor) {
         return slugify(instructor.slug || instructor.name) === "karen-jones" ? 0 : 1;
@@ -380,6 +381,7 @@
             return;
         if (!client) {
             instructors = fallbackInstructors;
+            cacheAvailableAreas();
             renderInstructors();
             return;
         }
@@ -389,17 +391,33 @@
             .eq("active", true)
             .order("name", { ascending: true });
         instructors = error || !data || data.length === 0 ? fallbackInstructors : data;
+        cacheAvailableAreas();
         renderInstructors();
+    }
+    function cacheAvailableAreas() {
+        const availableKeys = new Set();
+        instructors.forEach((instructor) => {
+            instructorMapKeys(instructor).forEach((key) => {
+                availableKeys.add(key);
+            });
+        });
+        cachedAvailableAreaKeys = Object.keys(areaLabels).filter((key) => availableKeys.has(key));
     }
     async function loadPosts() {
         loadInstructors(null);
         loadDeals(null);
-        if (!hasSupabaseConfig() || !window.supabase) {
+        if (!hasSupabaseConfig()) {
             renderPassPlaceholder();
             alignHashTarget();
             return;
         }
-        const client = window.supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        const supabase = await window.KS_LOAD_SUPABASE?.();
+        if (!supabase) {
+            renderPassPlaceholder();
+            alignHashTarget();
+            return;
+        }
+        const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
         loadInstructors(client);
         loadDeals(client);
         if (!gallery)
