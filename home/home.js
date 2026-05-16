@@ -1,6 +1,8 @@
 "use strict";
 (function () {
     const gallery = document.querySelector("#pass-gallery");
+    const dealPreview = document.querySelector("#deal-preview");
+    const dealList = document.querySelector("#deal-list");
     const instructorList = document.querySelector("#instructor-list");
     const selectedAreaTitle = document.querySelector("#selected-area-title");
     const instructorMatchMessage = document.querySelector("#instructor-match-message");
@@ -72,6 +74,17 @@
             !window.KS_SUPABASE.url.includes("YOUR_PROJECT_REF") &&
             !window.KS_SUPABASE.publishableKey.includes("YOUR_SUPABASE");
     }
+    function alignHashTarget() {
+        const targetId = decodeURIComponent(window.location.hash || "").replace(/^#/, "");
+        if (!targetId)
+            return;
+        const target = document.getElementById(targetId);
+        if (!target)
+            return;
+        window.requestAnimationFrame(() => {
+            target.scrollIntoView({ block: "start" });
+        });
+    }
     function renderPassPlaceholder() {
         if (!gallery)
             return;
@@ -81,6 +94,80 @@
         <p class="mt-2 leading-7">Recent student pass photos and reviews will be published here after the team adds them.</p>
       </div>
     `;
+    }
+    function dealCard(deal, options = {}) {
+        const validUntil = deal.valid_until
+            ? `<p class="mt-3 text-sm font-bold text-leaf">Valid until ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(deal.valid_until))}</p>`
+            : "";
+        const details = deal.details ? `<p class="mt-3 text-sm leading-6 text-ink/72">${escapeHtml(deal.details)}</p>` : "";
+        const compact = Boolean(options.compact);
+        return `
+      <article class="${compact ? "rounded-md border border-ink/10 bg-kerb p-5" : "rounded-md bg-white p-6 shadow-xl shadow-ink/8 sm:p-8"}">
+        <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Current deal</p>
+        <h2 class="mt-3 ${compact ? "text-3xl" : "text-3xl sm:text-4xl"} font-black tracking-normal">${escapeHtml(deal.title)}</h2>
+        <p class="mt-4 text-base leading-7 text-ink/72">${escapeHtml(deal.summary)}</p>
+        ${details}
+        ${validUntil}
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row ${compact ? "lg:flex-col" : ""}">
+          <a class="inline-flex items-center justify-center rounded-md bg-signal px-5 py-3 text-sm font-black text-ink transition hover:bg-road hover:text-white" href="${compact ? "../deals/" : "mailto:ksdrivingschool66@gmail.com?subject=Current%20lesson%20deals%20enquiry"}">${escapeHtml(deal.cta_label || "Ask about this deal")}</a>
+          <a class="inline-flex items-center justify-center rounded-md border border-ink/15 bg-white px-5 py-3 text-sm font-black text-ink transition hover:border-leaf hover:text-leaf" data-phone-link data-phone-label="Call the office" href="tel:+443337720143">Call the office</a>
+        </div>
+      </article>
+    `;
+    }
+    function renderDeals(deals) {
+        const visibleDeals = deals || [];
+        if (dealPreview) {
+            const homeDealSection = dealPreview.closest("[data-home-deals]");
+            if (visibleDeals.length > 0) {
+                dealPreview.innerHTML = dealCard(visibleDeals[0], { compact: true });
+                homeDealSection?.classList.remove("hidden");
+            }
+            else {
+                dealPreview.innerHTML = "";
+                homeDealSection?.classList.add("hidden");
+            }
+        }
+        if (dealList) {
+            dealList.innerHTML = visibleDeals.length > 0
+                ? visibleDeals.map((deal) => dealCard(deal)).join("")
+                : `
+          <div class="rounded-md border border-ink/10 bg-kerb p-5 text-ink/70">
+            <p class="text-lg font-black text-ink">No active deals currently.</p>
+            <p class="mt-2 text-sm leading-6">Check back soon or call the office to ask about lesson availability.</p>
+          </div>
+        `;
+        }
+        if (window.KS_SITE) {
+            document.querySelectorAll("[data-phone-link]").forEach((element) => {
+                const phoneDisplay = window.KS_SITE.phoneDisplay || "0333 7720143";
+                element.href = `tel:${window.KS_SITE.phoneHref || "+443337720143"}`;
+                if (element.dataset.phoneLabel || element.children.length === 0) {
+                    element.textContent = element.dataset.phoneLabel || phoneDisplay;
+                }
+            });
+        }
+        alignHashTarget();
+    }
+    async function loadDeals(client) {
+        if (!dealPreview && !dealList)
+            return;
+        if (!client) {
+            renderDeals([]);
+            return;
+        }
+        const today = new Date().toISOString().slice(0, 10);
+        const { data, error } = await client
+            .from("current_deals")
+            .select("title, summary, details, cta_label, valid_from, valid_until")
+            .eq("deal_type", "pupil")
+            .eq("published", true)
+            .or(`valid_from.is.null,valid_from.lte.${today}`)
+            .or(`valid_until.is.null,valid_until.gte.${today}`)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: false })
+            .limit(6);
+        renderDeals(error || !data ? [] : data);
     }
     function escapeHtml(value) {
         return String(value)
@@ -136,6 +223,9 @@
         const labels = instructorMapKeys(instructor).map((key) => areaLabels[key]);
         return labels.length > 0 ? labels.join(", ") : "Shropshire";
     }
+    function availableAreaKeys() {
+        return Object.keys(areaLabels).filter((key) => instructors.some((instructor) => instructorMapKeys(instructor).includes(key)));
+    }
     function instructorSortValue(instructor) {
         return slugify(instructor.slug || instructor.name) === "karen-jones" ? 0 : 1;
     }
@@ -184,6 +274,24 @@
     function renderInstructors() {
         if (!instructorList || !selectedAreaTitle)
             return;
+        const availableKeys = availableAreaKeys();
+        if (!availableKeys.includes(selectedArea)) {
+            selectedArea = availableKeys[0] || "";
+        }
+        areaTabs.forEach((tab) => {
+            tab.classList.toggle("hidden", !availableKeys.includes(tab.dataset.mapKey));
+        });
+        mapAreas.forEach((area) => {
+            area.classList.toggle("hidden", !availableKeys.includes(area.dataset.mapKey));
+            area.setAttribute("aria-hidden", String(!availableKeys.includes(area.dataset.mapKey)));
+        });
+        if (!selectedArea) {
+            selectedAreaTitle.textContent = "No instructors listed yet";
+            instructorMatchMessage?.classList.add("hidden");
+            instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check current lesson availability.</div>`;
+            alignHashTarget();
+            return;
+        }
         selectedAreaTitle.textContent = `${areaLabels[selectedArea]} instructors`;
         areaTabs.forEach((tab) => {
             const active = tab.dataset.mapKey === selectedArea;
@@ -212,12 +320,14 @@
         }
         if (matching.length === 0) {
             instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check availability for ${areaLabels[selectedArea]}.</div>`;
+            alignHashTarget();
             return;
         }
         instructorList.innerHTML = matching.map(instructorCard).join("");
+        alignHashTarget();
     }
     function setSelectedArea(mapKey, options = {}) {
-        if (!areaLabels[mapKey])
+        if (!areaLabels[mapKey] || !availableAreaKeys().includes(mapKey))
             return;
         selectedArea = mapKey;
         if (!options.keepTransmission) {
@@ -253,6 +363,12 @@
             }
             return;
         }
+        if (!availableAreaKeys().includes(area)) {
+            if (lessonFinderMessage) {
+                lessonFinderMessage.textContent = `No instructor is listed for ${areaLabels[area]} yet. Call 0333 7720143 and we will check availability.`;
+            }
+            return;
+        }
         setSelectedArea(area, { keepTransmission: true });
         document.querySelector("#areas")?.scrollIntoView({ behavior: "smooth", block: "start" });
         if (lessonFinderMessage) {
@@ -276,15 +392,18 @@
         renderInstructors();
     }
     async function loadPosts() {
-        if (!gallery)
-            return;
         loadInstructors(null);
+        loadDeals(null);
         if (!hasSupabaseConfig() || !window.supabase) {
             renderPassPlaceholder();
+            alignHashTarget();
             return;
         }
         const client = window.supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
         loadInstructors(client);
+        loadDeals(client);
+        if (!gallery)
+            return;
         const { data, error } = await client
             .from("pass_posts")
             .select("student_name, caption, review, image_url, passed_at")
@@ -293,13 +412,16 @@
             .limit(9);
         if (error) {
             renderPassPlaceholder();
+            alignHashTarget();
             return;
         }
         if (!data || data.length === 0) {
             renderPassPlaceholder();
+            alignHashTarget();
             return;
         }
         gallery.innerHTML = data.map(postCard).join("");
+        alignHashTarget();
     }
     areaTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -340,4 +462,5 @@
         });
     }
     loadPosts();
+    window.addEventListener("hashchange", alignHashTarget);
 })();

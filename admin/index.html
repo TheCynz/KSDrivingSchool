@@ -31,14 +31,17 @@
   <body class="min-h-screen bg-kerb text-ink antialiased">
     <main class="mx-auto min-h-screen max-w-6xl px-5 py-5">
       <section class="rounded-md border border-ink/10 bg-white p-4 shadow-xl shadow-ink/8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center justify-between gap-3">
           <a class="inline-flex w-fit rounded-md bg-white px-3 py-2 shadow-sm ring-1 ring-ink/8" href="../home/" aria-label="KS Driving School home">
             <img class="h-10 w-auto" src="../assets/ks-driving-school-logo.png" width="396" height="140" alt="KS Driving School">
           </a>
-          <div class="sm:text-right">
-            <h1 class="text-xl font-black tracking-normal text-road">Private admin</h1>
-            <p class="mt-1 text-sm leading-6 text-ink/65">Pass posts, reviews, instructors, lesson areas, and access.</p>
-            <a class="mt-2 inline-flex rounded-md border border-ink/15 px-3 py-2 text-xs font-black text-ink transition hover:border-leaf hover:text-leaf" href="../home/">Return home</a>
+          <div id="session-panel" class="hidden min-w-0 rounded-md border border-ink/10 bg-kerb px-3 py-2">
+            <div class="min-w-0">
+              <p class="text-xs font-bold uppercase tracking-[.16em] text-leaf">Signed in</p>
+              <p id="session-email" class="truncate text-sm font-bold text-ink"></p>
+              <p id="session-timeout-message" class="hidden text-xs font-bold text-red-700"></p>
+            </div>
+            <button id="sign-out" class="shrink-0 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" type="button">Sign out</button>
           </div>
         </div>
 
@@ -55,20 +58,17 @@
           <p id="login-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
         </form>
 
-        <div id="session-panel" class="mt-4 hidden rounded-md border border-ink/10 bg-kerb p-3">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-[.16em] text-leaf">Signed in</p>
-            <p id="session-email" class="break-all text-sm font-bold text-ink"></p>
-          </div>
-          <button id="sign-out" class="rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" type="button">Sign out</button>
-        </div>
       </section>
 
       <section id="admin-panel" class="mt-6 hidden">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button">
             <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Passes</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Add, edit, publish, or delete pass gallery posts.</p>
+          </button>
+          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="deals" type="button">
+            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Deals</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Create learner offers shown on the home page and deals page.</p>
           </button>
           <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="settings" type="button">
             <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Site settings</p>
@@ -144,6 +144,9 @@
           </div>
 
           <form id="settings-form" class="mt-8 grid gap-5">
+            <div>
+              <h3 class="text-xl font-black tracking-normal">Contact details</h3>
+            </div>
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
                 <label class="text-sm font-bold" for="setting-phone-display">Displayed phone</label>
@@ -165,6 +168,105 @@
             <button class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Save site settings</button>
             <p id="settings-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
           </form>
+        </div>
+
+        <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="deals">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Current deals</p>
+              <h2 id="deal-form-title" class="mt-2 text-3xl font-black tracking-normal">Learner offer</h2>
+              <p class="mt-2 text-sm leading-6 text-ink/68">Pupil deals are stored in the database and shown to learners on the home page and deals page when published.</p>
+            </div>
+          </div>
+
+          <form id="deal-form" class="mt-8 grid gap-5">
+            <input id="deal-id" name="deal-id" type="hidden">
+            <input id="deal-type" name="deal-type" type="hidden" value="pupil">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <label class="text-sm font-bold" for="deal-title">Deal title</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-title" name="deal-title" type="text" maxlength="120" placeholder="e.g. 10-hour lesson package" required>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="text-sm font-bold" for="deal-summary">Short summary</label>
+                <textarea class="mt-2 min-h-24 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-summary" name="deal-summary" maxlength="220" required></textarea>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="text-sm font-bold" for="deal-details">Details</label>
+                <textarea class="mt-2 min-h-32 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-details" name="deal-details" maxlength="500"></textarea>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="deal-cta-label">Button label</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-cta-label" name="deal-cta-label" type="text" maxlength="80" value="Ask about this deal" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="deal-sort-order">Display order</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-sort-order" name="deal-sort-order" type="number" min="0" max="999" step="1" value="100" required>
+              </div>
+              <div class="date-picker relative" data-date-picker data-date-input="deal-valid-from">
+                <label class="text-sm font-bold" for="deal-valid-from-button">Valid from</label>
+                <input id="deal-valid-from" name="deal-valid-from" type="hidden">
+                <button id="deal-valid-from-button" class="mt-2 flex w-full items-center justify-between gap-3 rounded-md border border-ink/15 bg-white px-4 py-3 text-left font-bold text-ink shadow-sm transition hover:border-leaf focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/25" data-date-toggle type="button" aria-haspopup="dialog" aria-expanded="false">
+                  <span data-date-label>Start immediately</span>
+                  <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-road" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path></svg>
+                </button>
+                <div class="absolute left-0 z-40 mt-2 hidden w-full min-w-80 rounded-md border border-ink/10 bg-white p-4 shadow-2xl shadow-ink/20" data-date-popover role="dialog" aria-label="Choose valid-from date">
+                  <div class="flex items-center justify-between gap-3">
+                    <button class="icon-action h-9 w-9" data-date-prev type="button" aria-label="Previous month"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+                    <p class="text-sm font-black text-road" data-date-month></p>
+                    <button class="icon-action h-9 w-9" data-date-next type="button" aria-label="Next month"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></button>
+                  </div>
+                  <div class="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-black uppercase text-ink/55" aria-hidden="true">
+                    <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                  </div>
+                  <div class="mt-2 grid grid-cols-7 gap-1" data-date-grid></div>
+                  <div class="mt-4 grid grid-cols-2 gap-2">
+                    <button class="rounded-md border border-ink/15 px-3 py-2 text-sm font-black text-ink transition hover:border-leaf hover:text-leaf" data-date-clear type="button">Start now</button>
+                    <button class="rounded-md bg-signal px-3 py-2 text-sm font-black text-ink transition hover:bg-road hover:text-white" data-date-today type="button">Today</button>
+                  </div>
+                </div>
+              </div>
+              <div class="date-picker relative" data-date-picker data-date-input="deal-valid-until">
+                <label class="text-sm font-bold" for="deal-valid-until-button">Valid until</label>
+                <input id="deal-valid-until" name="deal-valid-until" type="hidden">
+                <button id="deal-valid-until-button" class="mt-2 flex w-full items-center justify-between gap-3 rounded-md border border-ink/15 bg-white px-4 py-3 text-left font-bold text-ink shadow-sm transition hover:border-leaf focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/25" data-date-toggle type="button" aria-haspopup="dialog" aria-expanded="false">
+                  <span data-date-label>No end date</span>
+                  <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-road" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path></svg>
+                </button>
+                <div class="absolute left-0 z-40 mt-2 hidden w-full min-w-80 rounded-md border border-ink/10 bg-white p-4 shadow-2xl shadow-ink/20" data-date-popover role="dialog" aria-label="Choose valid-until date">
+                  <div class="flex items-center justify-between gap-3">
+                    <button class="icon-action h-9 w-9" data-date-prev type="button" aria-label="Previous month"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+                    <p class="text-sm font-black text-road" data-date-month></p>
+                    <button class="icon-action h-9 w-9" data-date-next type="button" aria-label="Next month"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></button>
+                  </div>
+                  <div class="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-black uppercase text-ink/55" aria-hidden="true">
+                    <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                  </div>
+                  <div class="mt-2 grid grid-cols-7 gap-1" data-date-grid></div>
+                  <div class="mt-4 grid grid-cols-2 gap-2">
+                    <button class="rounded-md border border-ink/15 px-3 py-2 text-sm font-black text-ink transition hover:border-leaf hover:text-leaf" data-date-clear type="button">No end date</button>
+                    <button class="rounded-md bg-signal px-3 py-2 text-sm font-black text-ink transition hover:bg-road hover:text-white" data-date-today type="button">Today</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <label class="flex items-center gap-3 text-sm font-bold">
+              <input id="deal-published" name="deal-published" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
+              Publish on website
+            </label>
+            <div id="deal-status-preview" class="rounded-md border border-leaf/20 bg-kerb p-4 text-sm leading-6 text-ink/72"></div>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="deal-submit" class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Save deal</button>
+              <button id="deal-cancel-edit" class="hidden rounded-md border border-ink/15 px-5 py-4 font-black text-ink transition hover:border-leaf hover:text-leaf" type="button">Cancel edit</button>
+            </div>
+            <p id="deal-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
+          </form>
+
+          <div class="mt-8 flex items-center justify-between gap-4">
+            <h3 class="text-2xl font-black tracking-normal">Existing deals</h3>
+            <button id="refresh-deals" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+          </div>
+          <div id="admin-deals" class="mt-5 grid gap-4"></div>
         </div>
 
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="instructors">
@@ -328,6 +430,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4"></script>
     <script src="../assets/supabase-config.js"></script>
-    <script src="admin.js?v=password-policy-no-sort"></script>
+    <script src="admin.js?v=deals-schedule-calendar"></script>
   </body>
 </html>

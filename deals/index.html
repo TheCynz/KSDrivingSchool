@@ -3,18 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="View KS Driving School instructor profiles, lesson areas, teaching style and booking details for Shrewsbury, Telford and nearby Shropshire areas.">
+    <meta name="description" content="Current KS Driving School learner deals and lesson package offers for Shrewsbury, Telford and nearby Shropshire areas.">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://bqlqkuxmrahfghbbrbxt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self' mailto:">
-    <title>Instructor Profile | KS Driving School</title>
-    <link rel="canonical" href="https://www.thetomjones.co.uk/instructors/">
+    <title>Current Driving Lesson Deals | KS Driving School</title>
+    <link rel="canonical" href="https://www.thetomjones.co.uk/deals/">
     <meta property="og:locale" content="en_GB">
-    <meta property="og:type" content="profile">
+    <meta property="og:type" content="website">
     <meta property="og:site_name" content="KS Driving School">
-    <meta property="og:title" content="Instructor Profile | KS Driving School">
-    <meta property="og:description" content="Meet a KS Driving School instructor and book local driving lessons.">
-    <meta property="og:url" content="https://www.thetomjones.co.uk/instructors/">
+    <meta property="og:title" content="Current Driving Lesson Deals | KS Driving School">
+    <meta property="og:description" content="Check current learner deals and lesson package offers from KS Driving School.">
+    <meta property="og:url" content="https://www.thetomjones.co.uk/deals/">
     <meta property="og:image" content="https://www.thetomjones.co.uk/assets/hero-blue-car.jpg">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
@@ -39,10 +39,10 @@
       };
     </script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=compact-nav-mapkeys">
+    <link rel="stylesheet" href="../assets/styles.css?v=deals">
   </head>
   <body class="bg-kerb text-ink antialiased">
-    <header class="border-b border-ink/10 bg-white shadow-sm">
+    <header class="sticky top-0 z-30 border-b border-ink/10 bg-white/96 shadow-sm backdrop-blur">
       <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-5">
         <a class="block" href="../home/" aria-label="KS Driving School home">
           <img class="h-10 w-auto sm:h-12" src="../assets/ks-driving-school-logo.png" width="396" height="140" alt="KS Driving School">
@@ -51,7 +51,7 @@
           <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
         </button>
         <div id="primary-nav" class="hidden w-full flex-col gap-2 border-t border-ink/10 pt-3 text-sm font-black sm:flex sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-4 sm:border-t-0 sm:pt-0">
-          <a class="text-ink transition hover:text-leaf" href="../deals/">Deals</a>
+          <a class="text-leaf" href="../deals/">Deals</a>
           <a class="text-ink transition hover:text-leaf" href="../home/#passes">Passes</a>
           <a class="text-ink transition hover:text-leaf" href="../instructor-training/">Instructor Training</a>
           <a class="rounded-md bg-signal px-3 py-2 text-center text-ink shadow-sm transition hover:bg-road hover:text-white sm:px-4" href="../contact/">Book</a>
@@ -60,17 +60,27 @@
     </header>
 
     <main>
-      <section class="bg-road px-5 py-16 text-white">
+      <section class="bg-road px-5 py-16 text-white sm:py-20">
         <div class="mx-auto max-w-6xl">
-          <p class="text-sm font-black uppercase tracking-[.18em] text-signal">Instructor profile</p>
-          <h1 id="profile-heading" class="mt-3 max-w-4xl text-4xl font-black tracking-normal sm:text-6xl">Meet your local driving instructor.</h1>
-          <p id="profile-intro" class="mt-5 max-w-2xl text-lg leading-8 text-white/78">View coverage, lesson type, and booking details before you call.</p>
+          <p class="text-sm font-black uppercase tracking-[.18em] text-signal">Current deals</p>
+          <h1 class="mt-3 max-w-4xl text-4xl font-black tracking-normal sm:text-6xl">Current driving lesson deals.</h1>
+          <p class="mt-5 max-w-2xl text-lg leading-8 text-white/78">Driving lesson offers for learners in Shrewsbury, Telford and nearby Shropshire areas.</p>
         </div>
       </section>
 
-      <section class="px-5 py-16">
-        <div id="instructor-profile" class="mx-auto max-w-6xl">
-          <div class="rounded-md bg-white p-6 text-ink/70 shadow-xl shadow-ink/8">Loading instructor profile...</div>
+      <section class="px-5 py-16 sm:py-20">
+        <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
+          <div id="deal-list" class="grid gap-5">
+            <div class="rounded-md bg-white p-6 text-ink/70 shadow-xl shadow-ink/8">Loading current deals...</div>
+          </div>
+          <aside class="rounded-md bg-white p-6 shadow-xl shadow-ink/8">
+            <h2 class="text-2xl font-black tracking-normal">Before you book</h2>
+            <div class="mt-5 grid gap-3 text-sm leading-6 text-ink/72">
+              <p class="rounded-md bg-kerb p-3">Tell us your postcode and whether you want manual or automatic lessons.</p>
+              <p class="rounded-md bg-kerb p-3">Ask which instructors currently have diary space in your area.</p>
+              <p class="rounded-md bg-kerb p-3">Regular lessons usually make better use of a block booking.</p>
+            </div>
+          </aside>
         </div>
       </section>
     </main>
@@ -101,7 +111,7 @@
     <script src="../assets/site-config.js"></script>
     <script src="../assets/supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4"></script>
-    <script src="../assets/site.js?v=footer-icons"></script>
-    <script src="instructor-profile.js?v=mapkeys-compact-nav"></script>
+    <script src="../assets/site.js?v=deals-training"></script>
+    <script src="../home/home.js?v=nav-training"></script>
   </body>
 </html>

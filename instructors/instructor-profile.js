@@ -88,7 +88,7 @@
         <p class="mt-3 leading-7 text-ink/70">Use the coverage map to choose an instructor, or contact the office with your postcode and availability.</p>
         <div class="mt-5 flex flex-col gap-3 sm:flex-row">
           <a class="rounded-md bg-road px-5 py-3 text-center font-black text-white transition hover:bg-leaf" href="../home/#areas">View lesson areas</a>
-          <a class="rounded-md border border-ink/15 px-5 py-3 text-center font-black text-ink transition hover:border-leaf hover:text-leaf" href="../contact/">Contact us</a>
+          <a class="rounded-md border border-ink/15 px-5 py-3 text-center font-black text-ink transition hover:border-leaf hover:text-leaf" href="../contact/">Book lessons</a>
         </div>
       </div>
     `;

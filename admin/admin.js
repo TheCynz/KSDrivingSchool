@@ -4,6 +4,7 @@
     const loginMessage = document.querySelector("#login-message");
     const sessionPanel = document.querySelector("#session-panel");
     const sessionEmail = document.querySelector("#session-email");
+    const sessionTimeoutMessage = document.querySelector("#session-timeout-message");
     const adminPanel = document.querySelector("#admin-panel");
     const signOutButton = document.querySelector("#sign-out");
     const postForm = document.querySelector("#post-form");
@@ -18,6 +19,18 @@
     const adminPosts = document.querySelector("#admin-posts");
     const refreshPosts = document.querySelector("#refresh-posts");
     const passedAt = document.querySelector("#passed-at");
+    const dealForm = document.querySelector("#deal-form");
+    const dealId = document.querySelector("#deal-id");
+    const dealFormTitle = document.querySelector("#deal-form-title");
+    const dealSubmit = document.querySelector("#deal-submit");
+    const dealCancelEdit = document.querySelector("#deal-cancel-edit");
+    const dealMessage = document.querySelector("#deal-message");
+    const adminDeals = document.querySelector("#admin-deals");
+    const refreshDeals = document.querySelector("#refresh-deals");
+    const dealValidFrom = document.querySelector("#deal-valid-from");
+    const dealValidUntil = document.querySelector("#deal-valid-until");
+    const dealStatusPreview = document.querySelector("#deal-status-preview");
+    const dealDatePickers = Array.from(document.querySelectorAll("[data-date-picker]"));
     const instructorForm = document.querySelector("#instructor-form");
     const instructorId = document.querySelector("#instructor-id");
     const instructorCurrentPhotoPath = document.querySelector("#instructor-current-photo-path");
@@ -54,6 +67,9 @@
     const maxPhotoSize = 5 * 1024 * 1024;
     const allowedPhotoTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
     const passwordRequirements = "Minimum 12 characters with lowercase, uppercase, digit, and symbol.";
+    const adminIdleTimeoutMs = 2 * 60 * 60 * 1000;
+    const adminIdleWarningMs = 5 * 60 * 1000;
+    const adminLastActivityKey = "ks_admin_last_activity";
     const areaLabels = {
         shrewsbury: "Shrewsbury",
         telford: "Telford",
@@ -61,13 +77,23 @@
         boomerheath: "Boomerheath"
     };
     let cachedPosts = [];
+    let cachedDeals = [];
     let cachedInstructors = [];
     let cachedAdminUsers = [];
+    let adminLogoutTimer = 0;
+    let adminWarningTimer = 0;
+    let adminIdleWarningShown = false;
     const settingLabels = {
         phone_display: "Displayed phone number",
         phone_href: "Telephone link number",
         email: "Public email address",
         facebook_url: "Facebook page URL"
+    };
+    const settingDefaults = {
+        phone_display: "0333 7720143",
+        phone_href: "+443337720143",
+        email: "ksdrivingschool66@gmail.com",
+        facebook_url: "https://www.facebook.com/drivinglessonsshrewsbury/"
     };
     if (passedAt) {
         passedAt.valueAsDate = new Date();
@@ -113,23 +139,96 @@
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
     }
-    function setAuthenticated(user) {
+    function setAuthenticated(user, resetActivity = false) {
         loginForm.classList.add("hidden");
         sessionPanel.classList.remove("hidden");
         sessionPanel.classList.add("flex", "flex-col", "gap-3", "sm:flex-row", "sm:items-center", "sm:justify-between");
         adminPanel.classList.remove("hidden");
         sessionEmail.textContent = user.email;
+        if (sessionTimeoutMessage) {
+            sessionTimeoutMessage.classList.add("hidden");
+            sessionTimeoutMessage.textContent = "";
+        }
+        startAdminAutoLogout(resetActivity);
         loadAdminPosts();
+        loadAdminDeals();
         loadAdminInstructors();
         loadSiteSettings();
         loadAdminUsers();
     }
     function setSignedOut() {
+        stopAdminAutoLogout();
         loginForm.classList.remove("hidden");
         sessionPanel.classList.remove("flex", "flex-col", "gap-3", "sm:flex-row", "sm:items-center", "sm:justify-between");
         sessionPanel.classList.add("hidden");
         adminPanel.classList.add("hidden");
         sessionEmail.textContent = "";
+    }
+    function stopAdminAutoLogout() {
+        window.clearTimeout(adminLogoutTimer);
+        window.clearTimeout(adminWarningTimer);
+        adminLogoutTimer = 0;
+        adminWarningTimer = 0;
+        adminIdleWarningShown = false;
+        localStorage.removeItem(adminLastActivityKey);
+    }
+    function lastAdminActivity() {
+        return Number(localStorage.getItem(adminLastActivityKey) || 0);
+    }
+    function recordAdminActivity() {
+        if (adminPanel.classList.contains("hidden"))
+            return;
+        localStorage.setItem(adminLastActivityKey, String(Date.now()));
+        adminIdleWarningShown = false;
+        if (sessionTimeoutMessage) {
+            sessionTimeoutMessage.classList.add("hidden");
+            sessionTimeoutMessage.textContent = "";
+        }
+        scheduleAdminAutoLogout();
+    }
+    function showAdminIdleWarning() {
+        if (adminPanel.classList.contains("hidden") || adminIdleWarningShown)
+            return;
+        adminIdleWarningShown = true;
+        if (sessionTimeoutMessage) {
+            sessionTimeoutMessage.textContent = "Auto logout in 5 minutes unless you keep working.";
+            sessionTimeoutMessage.classList.remove("hidden");
+        }
+    }
+    async function autoSignOutAdmin() {
+        if (adminPanel.classList.contains("hidden"))
+            return;
+        await client.auth.signOut();
+        setSignedOut();
+        setMessage(loginMessage, "Signed out after 2 hours of inactivity.", false);
+    }
+    function scheduleAdminAutoLogout() {
+        window.clearTimeout(adminLogoutTimer);
+        window.clearTimeout(adminWarningTimer);
+        const lastActivity = lastAdminActivity();
+        if (!lastActivity)
+            return;
+        const elapsed = Date.now() - lastActivity;
+        const logoutDelay = adminIdleTimeoutMs - elapsed;
+        const warningDelay = logoutDelay - adminIdleWarningMs;
+        if (logoutDelay <= 0) {
+            autoSignOutAdmin();
+            return;
+        }
+        if (warningDelay <= 0) {
+            showAdminIdleWarning();
+        }
+        else {
+            adminWarningTimer = window.setTimeout(showAdminIdleWarning, warningDelay);
+        }
+        adminLogoutTimer = window.setTimeout(autoSignOutAdmin, logoutDelay);
+    }
+    function startAdminAutoLogout(resetActivity = false) {
+        const existingActivity = lastAdminActivity();
+        if (resetActivity || !existingActivity) {
+            localStorage.setItem(adminLastActivityKey, String(Date.now()));
+        }
+        scheduleAdminAutoLogout();
     }
     function cleanFileName(file, fallbackName = "pass-photo") {
         const extensions = {
@@ -167,6 +266,139 @@
             return "";
         }
     }
+    function todayIso() {
+        return new Date().toISOString().slice(0, 10);
+    }
+    function parseIsoDate(value) {
+        const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match)
+            return null;
+        const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+    function isoDate(date) {
+        return [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0")
+        ].join("-");
+    }
+    function formatDateLabel(value, emptyLabel) {
+        const date = parseIsoDate(value);
+        return date ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(date) : emptyLabel;
+    }
+    function setDateValue(inputId, value) {
+        const input = document.querySelector(`#${inputId}`);
+        if (!input)
+            return;
+        input.value = value || "";
+        const picker = document.querySelector(`[data-date-input="${inputId}"]`);
+        const label = picker?.querySelector("[data-date-label]");
+        const emptyLabel = inputId === "deal-valid-from" ? "Start immediately" : "No end date";
+        if (label)
+            label.textContent = formatDateLabel(input.value, emptyLabel);
+        renderDatePicker(picker);
+        updateDealStatusPreview();
+    }
+    function datePickerMonth(picker) {
+        const input = document.querySelector(`#${picker.dataset.dateInput}`);
+        const selected = parseIsoDate(input?.value);
+        const stored = picker.dataset.visibleMonth ? parseIsoDate(`${picker.dataset.visibleMonth}-01`) : null;
+        const date = selected || stored || new Date();
+        return new Date(date.getFullYear(), date.getMonth(), 1);
+    }
+    function setDatePickerMonth(picker, date) {
+        picker.dataset.visibleMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+    function setDatePickerOpen(picker, open) {
+        picker?.querySelector("[data-date-popover]")?.classList.toggle("hidden", !open);
+        picker?.querySelector("[data-date-toggle]")?.setAttribute("aria-expanded", String(open));
+        if (open)
+            renderDatePicker(picker);
+    }
+    function eventMatch(event, selector, scope) {
+        const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+        const match = path.find((item) => item?.matches?.(selector) && (!scope || scope.contains(item)));
+        if (match)
+            return match;
+        const target = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+        const fallback = target?.closest?.(selector);
+        return fallback && (!scope || scope.contains(fallback)) ? fallback : null;
+    }
+    function renderDatePicker(picker) {
+        if (!picker)
+            return;
+        const input = document.querySelector(`#${picker.dataset.dateInput}`);
+        const grid = picker.querySelector("[data-date-grid]");
+        const monthLabel = picker.querySelector("[data-date-month]");
+        if (!input || !grid || !monthLabel)
+            return;
+        const monthStart = datePickerMonth(picker);
+        const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+        const selected = input.value;
+        const today = todayIso();
+        const offset = (monthStart.getDay() + 6) % 7;
+        const cells = [];
+        monthLabel.textContent = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(monthStart);
+        for (let index = 0; index < offset; index += 1) {
+            cells.push(`<span class="h-10 rounded-md"></span>`);
+        }
+        for (let day = 1; day <= monthEnd.getDate(); day += 1) {
+            const value = isoDate(new Date(monthStart.getFullYear(), monthStart.getMonth(), day));
+            const active = value === selected;
+            const isToday = value === today;
+            cells.push(`
+        <button class="h-10 rounded-md text-sm font-black transition ${active ? "bg-road text-white shadow-sm" : "bg-kerb text-ink hover:bg-signal"} ${isToday && !active ? "ring-2 ring-leaf/40" : ""}" data-date-day="${value}" type="button" aria-pressed="${active}">
+          ${day}
+        </button>
+      `);
+        }
+        grid.innerHTML = cells.join("");
+    }
+    function dealStatus(deal) {
+        if (!deal.published) {
+            return {
+                label: "Draft",
+                description: "This deal is saved but hidden from the website.",
+                className: "border-ink/10 bg-kerb text-ink"
+            };
+        }
+        const today = todayIso();
+        if (deal.valid_from && deal.valid_from > today) {
+            return {
+                label: "Scheduled",
+                description: `This deal will appear on ${formatDateLabel(deal.valid_from, "")}.`,
+                className: "border-road/20 bg-road/10 text-road"
+            };
+        }
+        if (deal.valid_until && deal.valid_until < today) {
+            return {
+                label: "Expired",
+                description: "This deal has passed its valid-until date and is hidden from the website.",
+                className: "border-red-200 bg-red-50 text-red-800"
+            };
+        }
+        return {
+            label: "Active now",
+            description: "This deal is visible on the website.",
+            className: "border-leaf/25 bg-leaf/10 text-road"
+        };
+    }
+    function updateDealStatusPreview() {
+        if (!dealStatusPreview)
+            return;
+        const status = dealStatus({
+            published: document.querySelector("#deal-published")?.checked,
+            valid_from: dealValidFrom?.value || null,
+            valid_until: dealValidUntil?.value || null
+        });
+        dealStatusPreview.className = `rounded-md border p-4 text-sm leading-6 ${status.className}`;
+        dealStatusPreview.innerHTML = `<p class="text-base font-black">${status.label}</p><p class="mt-1">${status.description}</p>`;
+    }
+    function isMissingDealsTable(error) {
+        const message = String(error?.message || "");
+        return message.includes("current_deals") || message.includes("schema cache") || message.includes("Could not find the table");
+    }
     function resetPostForm() {
         postForm.reset();
         postId.value = "";
@@ -180,6 +412,20 @@
         postFormTitle.textContent = "Student passed with no faults";
         postSubmit.textContent = "Upload post";
         postCancelEdit.classList.add("hidden");
+    }
+    function resetDealForm() {
+        dealForm.reset();
+        dealId.value = "";
+        document.querySelector("#deal-type").value = "pupil";
+        document.querySelector("#deal-cta-label").value = "Ask about this deal";
+        document.querySelector("#deal-sort-order").value = "100";
+        setDateValue("deal-valid-from", "");
+        setDateValue("deal-valid-until", "");
+        document.querySelector("#deal-published").checked = true;
+        dealFormTitle.textContent = "Learner offer";
+        dealSubmit.textContent = "Save deal";
+        dealCancelEdit.classList.add("hidden");
+        updateDealStatusPreview();
     }
     function getInstructorMapKeys(instructor) {
         if (Array.isArray(instructor.map_keys) && instructor.map_keys.length > 0) {
@@ -291,6 +537,59 @@
       `;
         }).join("");
     }
+    async function loadAdminDeals() {
+        adminDeals.innerHTML = `<p class="text-sm text-ink/60">Loading deals...</p>`;
+        const { data, error } = await client
+            .from("current_deals")
+            .select("id, deal_type, title, summary, details, cta_label, sort_order, published, valid_from, valid_until, created_at")
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: false });
+        if (error) {
+            cachedDeals = [];
+            adminDeals.innerHTML = `<p class="text-sm text-ink/60">No active deals yet.</p>`;
+            return;
+        }
+        if (!data || data.length === 0) {
+            cachedDeals = [];
+            adminDeals.innerHTML = `<p class="text-sm text-ink/60">No active deals yet.</p>`;
+            return;
+        }
+        cachedDeals = data;
+        adminDeals.innerHTML = data.map((deal) => {
+            const status = dealStatus(deal);
+            const dealType = deal.deal_type === "pupil" ? "Pupil" : deal.deal_type || "Deal";
+            const validFrom = deal.valid_from
+                ? `Starts ${formatDateLabel(deal.valid_from, "")}`
+                : "Starts immediately";
+            const validUntil = deal.valid_until
+                ? `Ends ${formatDateLabel(deal.valid_until, "")}`
+                : "No end date";
+            const details = deal.details ? `<p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(deal.details)}</p>` : "";
+            return `
+        <article class="rounded-md border border-ink/10 p-4">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-black">${escapeHtml(deal.title)}</h3>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(dealType)}</span>
+                <span class="rounded-md border px-3 py-1 text-xs font-black ${status.className}">${escapeHtml(status.label)}</span>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">Order ${escapeHtml(deal.sort_order)}</span>
+              </div>
+              <p class="mt-2 text-sm font-bold text-leaf">${escapeHtml(`${validFrom} · ${validUntil}`)}</p>
+              <p class="mt-1 text-sm text-ink/62">${escapeHtml(status.description)}</p>
+              <p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(deal.summary)}</p>
+              ${details}
+              <p class="mt-2 text-sm font-bold text-road">${escapeHtml(deal.cta_label || "Ask about this deal")}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="edit-deal rounded-md bg-kerb px-4 py-2 text-sm font-bold text-road transition hover:bg-signal hover:text-ink" data-deal-id="${deal.id}" type="button">Edit</button>
+              <button class="delete-deal rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50" data-deal-id="${deal.id}" type="button">Delete</button>
+            </div>
+          </div>
+        </article>
+      `;
+        }).join("");
+    }
     async function loadAdminInstructors() {
         adminInstructors.innerHTML = `<p class="text-sm text-ink/60">Loading instructors...</p>`;
         const { data, error } = await client
@@ -359,7 +658,7 @@
         Object.keys(settingLabels).forEach((key) => {
             const input = settingsForm.elements[key];
             if (input)
-                input.value = settings[key] || "";
+                input.value = settings[key] || settingDefaults[key] || "";
         });
         setMessage(settingsMessage, "", false);
     }
@@ -453,6 +752,27 @@
         postCancelEdit.classList.remove("hidden");
         postForm.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    function editDeal(id) {
+        const deal = cachedDeals.find((item) => item.id === id);
+        if (!deal)
+            return;
+        showAdminView("deals");
+        dealId.value = deal.id;
+        document.querySelector("#deal-type").value = deal.deal_type || "pupil";
+        document.querySelector("#deal-title").value = deal.title || "";
+        document.querySelector("#deal-summary").value = deal.summary || "";
+        document.querySelector("#deal-details").value = deal.details || "";
+        document.querySelector("#deal-cta-label").value = deal.cta_label || "Ask about this deal";
+        document.querySelector("#deal-sort-order").value = String(deal.sort_order ?? 100);
+        setDateValue("deal-valid-from", dateInputValue(deal.valid_from));
+        setDateValue("deal-valid-until", dateInputValue(deal.valid_until));
+        document.querySelector("#deal-published").checked = Boolean(deal.published);
+        dealFormTitle.textContent = `Edit ${deal.title || "deal"}`;
+        dealSubmit.textContent = "Save deal";
+        dealCancelEdit.classList.remove("hidden");
+        updateDealStatusPreview();
+        dealForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     function editInstructor(id) {
         const instructor = cachedInstructors.find((item) => item.id === id);
         if (!instructor)
@@ -507,7 +827,7 @@
             return;
         }
         setMessage(loginMessage, "", false);
-        setAuthenticated(data.user);
+        setAuthenticated(data.user, true);
     });
     signOutButton.addEventListener("click", async () => {
         await client.auth.signOut();
@@ -585,6 +905,50 @@
         resetPostForm();
         setMessage(postMessage, editingPostId ? "Post updated." : "Post uploaded.", false);
         loadAdminPosts();
+    });
+    dealForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setMessage(dealMessage, "Saving deal...", false);
+        const formData = new FormData(dealForm);
+        const editingDealId = String(formData.get("deal-id")).trim();
+        const sortOrder = Number.parseInt(String(formData.get("deal-sort-order") || "100"), 10);
+        const dealPayload = {
+            deal_type: String(formData.get("deal-type") || "pupil"),
+            title: String(formData.get("deal-title")).trim(),
+            summary: String(formData.get("deal-summary")).trim(),
+            details: String(formData.get("deal-details")).trim() || null,
+            cta_label: String(formData.get("deal-cta-label")).trim() || "Ask about this deal",
+            sort_order: Number.isFinite(sortOrder) ? sortOrder : 100,
+            valid_from: String(formData.get("deal-valid-from")).trim() || null,
+            valid_until: String(formData.get("deal-valid-until")).trim() || null,
+            published: formData.get("deal-published") === "on",
+            updated_at: new Date().toISOString()
+        };
+        if (dealPayload.deal_type !== "pupil") {
+            setMessage(dealMessage, "Only pupil deals are supported right now.", true);
+            return;
+        }
+        if (!dealPayload.title || !dealPayload.summary || !dealPayload.cta_label) {
+            setMessage(dealMessage, "Title, summary, and button label are required.", true);
+            return;
+        }
+        if (dealPayload.valid_from && dealPayload.valid_until && dealPayload.valid_from > dealPayload.valid_until) {
+            setMessage(dealMessage, "Valid from must be before valid until.", true);
+            return;
+        }
+        const { error } = editingDealId
+            ? await client.from("current_deals").update(dealPayload).eq("id", editingDealId)
+            : await client.from("current_deals").insert(dealPayload);
+        if (error) {
+            const message = isMissingDealsTable(error)
+                ? "Deals storage is not installed yet. Apply supabase/schema.sql to the Supabase project, then refresh this page."
+                : error.message;
+            setMessage(dealMessage, message, true);
+            return;
+        }
+        resetDealForm();
+        setMessage(dealMessage, editingDealId ? "Deal updated." : "Deal created.", false);
+        loadAdminDeals();
     });
     instructorForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -680,7 +1044,7 @@
             updated_by: userId || null,
             updated_at: new Date().toISOString()
         }));
-        if (rows.some((row) => row.value.length === 0)) {
+        if (rows.some((row) => row.key !== "deals_details" && row.value.length === 0)) {
             setMessage(settingsMessage, "All site settings are required.", true);
             return;
         }
@@ -792,6 +1156,32 @@
         setMessage(postMessage, "Post deleted.", false);
         loadAdminPosts();
     });
+    adminDeals.addEventListener("click", async (event) => {
+        const editButton = event.target.closest(".edit-deal");
+        if (editButton) {
+            editDeal(editButton.dataset.dealId);
+            return;
+        }
+        const deleteButton = event.target.closest(".delete-deal");
+        if (!deleteButton)
+            return;
+        const { error } = await client
+            .from("current_deals")
+            .delete()
+            .eq("id", deleteButton.dataset.dealId);
+        if (error) {
+            const message = isMissingDealsTable(error)
+                ? "Deals storage is not installed yet. Apply supabase/schema.sql to the Supabase project, then refresh this page."
+                : error.message;
+            setMessage(dealMessage, message, true);
+            return;
+        }
+        if (dealId.value === deleteButton.dataset.dealId) {
+            resetDealForm();
+        }
+        setMessage(dealMessage, "Deal deleted.", false);
+        loadAdminDeals();
+    });
     adminUsers.addEventListener("click", async (event) => {
         const editButton = event.target.closest(".edit-admin-user");
         if (editButton) {
@@ -831,9 +1221,77 @@
             showAdminView(card.dataset.adminView);
         });
     });
+    dealDatePickers.forEach((picker) => {
+        setDatePickerMonth(picker, datePickerMonth(picker));
+        renderDatePicker(picker);
+        picker.addEventListener("click", (event) => {
+            const inputId = picker.dataset.dateInput;
+            if (eventMatch(event, "[data-date-toggle]", picker)) {
+                const popover = picker.querySelector("[data-date-popover]");
+                const willOpen = popover?.classList.contains("hidden");
+                dealDatePickers.forEach((item) => setDatePickerOpen(item, false));
+                setDatePickerOpen(picker, willOpen);
+                return;
+            }
+            if (eventMatch(event, "[data-date-prev]", picker)) {
+                const month = datePickerMonth(picker);
+                setDatePickerMonth(picker, new Date(month.getFullYear(), month.getMonth() - 1, 1));
+                renderDatePicker(picker);
+                return;
+            }
+            if (eventMatch(event, "[data-date-next]", picker)) {
+                const month = datePickerMonth(picker);
+                setDatePickerMonth(picker, new Date(month.getFullYear(), month.getMonth() + 1, 1));
+                renderDatePicker(picker);
+                return;
+            }
+            if (eventMatch(event, "[data-date-clear]", picker)) {
+                setDateValue(inputId, "");
+                setDatePickerOpen(picker, false);
+                return;
+            }
+            if (eventMatch(event, "[data-date-today]", picker)) {
+                const value = todayIso();
+                setDateValue(inputId, value);
+                setDatePickerMonth(picker, datePickerMonth(picker));
+                setDatePickerOpen(picker, false);
+                return;
+            }
+            const dayButton = eventMatch(event, "[data-date-day]", picker);
+            if (dayButton) {
+                setDateValue(inputId, dayButton.dataset.dateDay);
+                setDatePickerMonth(picker, datePickerMonth(picker));
+                setDatePickerOpen(picker, false);
+            }
+        });
+    });
+    document.addEventListener("click", (event) => {
+        if (dealDatePickers.some((picker) => picker.contains(event.target)))
+            return;
+        dealDatePickers.forEach((picker) => setDatePickerOpen(picker, false));
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            dealDatePickers.forEach((picker) => setDatePickerOpen(picker, false));
+        }
+    });
+    ["click", "keydown", "input", "pointerdown", "touchstart"].forEach((eventName) => {
+        document.addEventListener(eventName, recordAdminActivity, { passive: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            scheduleAdminAutoLogout();
+        }
+    });
+    dealForm?.addEventListener("input", updateDealStatusPreview);
+    dealForm?.addEventListener("change", updateDealStatusPreview);
     postCancelEdit.addEventListener("click", () => {
         resetPostForm();
         setMessage(postMessage, "", false);
+    });
+    dealCancelEdit.addEventListener("click", () => {
+        resetDealForm();
+        setMessage(dealMessage, "", false);
     });
     instructorCancelEdit.addEventListener("click", () => {
         resetInstructorForm();
@@ -846,6 +1304,7 @@
         setMessage(adminUserMessage, "", false);
     });
     refreshPosts.addEventListener("click", loadAdminPosts);
+    refreshDeals.addEventListener("click", loadAdminDeals);
     refreshInstructors.addEventListener("click", loadAdminInstructors);
     refreshAdminUsers.addEventListener("click", loadAdminUsers);
     toggleInstructorForm?.addEventListener("click", () => {
@@ -864,6 +1323,7 @@
             setMessage(adminUserMessage, "", false);
         }
     });
+    updateDealStatusPreview();
     showAdminView("passes");
     loadSession();
 })();
