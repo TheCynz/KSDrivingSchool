@@ -21,6 +21,9 @@
     <meta name="twitter:title" content="Driving Lessons Shrewsbury & Telford | KS Driving School">
     <meta name="twitter:description" content="Book friendly manual and automatic driving lessons with local KS Driving School instructors.">
     <meta name="twitter:image" content="https://ks-driving-school.co.uk/assets/hero-blue-car.jpg">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preload" as="image" href="../assets/hero-blue-car.jpg" fetchpriority="high">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -110,7 +113,7 @@
     <header class="sticky top-0 z-30 border-b border-ink/10 bg-white/96 shadow-sm backdrop-blur">
       <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-5">
         <a class="block" href="../home/" aria-label="KS Driving School home">
-          <img class="h-10 w-auto sm:h-12" src="../assets/ks-driving-school-logo.png" alt="KS Driving School">
+          <img class="h-10 w-auto sm:h-12" src="../assets/ks-driving-school-logo.png" width="396" height="140" alt="KS Driving School">
         </a>
         <button id="mobile-nav-toggle" class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-ink/12 text-road transition hover:bg-kerb sm:hidden" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Open navigation">
           <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
@@ -126,24 +129,24 @@
 
     <main>
       <section class="relative overflow-hidden bg-road text-white">
-        <img class="absolute inset-0 h-full w-full object-cover opacity-85" src="../assets/hero-blue-car.jpg" alt="Driving instructor car on the road">
+        <img class="absolute inset-0 h-full w-full object-cover opacity-85" src="../assets/hero-blue-car.jpg" width="1440" height="897" alt="Driving instructor car on the road" fetchpriority="high" decoding="async">
         <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,35,78,.70),rgba(11,58,120,.38),rgba(11,58,120,.08))]"></div>
-        <div class="relative z-10 mx-auto grid min-h-[720px] max-w-6xl gap-8 px-4 pb-28 pt-10 sm:px-5 lg:grid-cols-[1fr_380px] lg:items-center">
-          <div class="max-w-3xl">
-            <p class="mb-5 inline-flex rounded-md bg-white/12 px-3 py-2 text-sm font-bold text-signal ring-1 ring-white/20">Local driving lessons in Shropshire</p>
-            <h1 class="max-w-3xl text-4xl font-black leading-[1.04] tracking-normal sm:text-6xl lg:text-7xl">Driving lessons in Telford, Shrewsbury and nearby areas.</h1>
-            <p class="mt-5 max-w-2xl text-lg leading-8 text-white/88">Patient manual and automatic instructors, local test-route practice, and clear booking by phone or message.</p>
-            <div class="mt-6 grid gap-3 sm:flex sm:flex-wrap">
+        <div class="relative z-10 mx-auto grid min-w-0 max-w-6xl gap-5 px-4 pb-6 pt-4 sm:gap-8 sm:px-5 sm:pb-28 sm:pt-10 lg:min-h-[720px] lg:grid-cols-[1fr_380px] lg:items-center">
+          <div class="order-2 max-w-3xl lg:order-1">
+            <p class="mb-4 inline-flex rounded-md bg-white/12 px-3 py-2 text-sm font-bold text-signal ring-1 ring-white/20 sm:mb-5">Local driving lessons in Shropshire</p>
+            <h1 class="max-w-3xl text-3xl font-black leading-[1.06] tracking-normal sm:text-6xl lg:text-7xl">Driving lessons in Telford, Shrewsbury and nearby areas.</h1>
+            <p class="mt-4 max-w-2xl text-base leading-7 text-white/88 sm:mt-5 sm:text-lg sm:leading-8">Patient manual and automatic instructors, local test-route practice, and clear booking by phone or message.</p>
+            <div class="mt-5 grid gap-3 sm:mt-6 sm:flex sm:flex-wrap">
               <a class="inline-flex items-center justify-center rounded-md bg-signal px-6 py-4 text-base font-black text-ink shadow-lg shadow-black/20 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white" data-phone-link data-phone-label="Call 0333 7720143" href="tel:+443337720143">Call 0333 7720143</a>
               <a class="inline-flex items-center justify-center rounded-md border border-white/35 px-6 py-4 text-base font-bold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white" href="../contact/">Ask about lessons</a>
             </div>
-            <div class="mt-6 flex flex-wrap gap-2 text-sm font-bold text-white/88">
+            <div class="mt-5 flex flex-wrap gap-2 text-sm font-bold text-white/88 sm:mt-6">
               <span class="rounded-md bg-white/12 px-3 py-2 ring-1 ring-white/18">DVSA registered instructors</span>
               <span class="rounded-md bg-white/12 px-3 py-2 ring-1 ring-white/18">Manual + automatic</span>
               <span class="rounded-md bg-white/12 px-3 py-2 ring-1 ring-white/18">Local test routes</span>
             </div>
           </div>
-          <aside class="rounded-md bg-white p-5 text-ink shadow-2xl shadow-black/25">
+          <aside class="mobile-safe-panel order-1 min-w-0 rounded-md bg-white p-4 text-ink shadow-2xl shadow-black/25 sm:p-5 lg:order-2">
             <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Start here</p>
             <h2 class="mt-2 text-2xl font-black">Book lessons in minutes</h2>
             <form id="lesson-finder" class="mt-5 grid gap-4">
@@ -169,8 +172,8 @@
             </form>
           </aside>
         </div>
-        <div class="absolute bottom-0 left-0 right-0 z-10 bg-white shadow-2xl shadow-black/10">
-          <div class="mx-auto grid max-w-6xl gap-4 px-5 py-5 text-ink sm:grid-cols-3">
+        <div class="relative z-10 bg-white shadow-2xl shadow-black/10 sm:absolute sm:bottom-0 sm:left-0 sm:right-0">
+          <div class="mx-auto grid max-w-6xl gap-4 px-4 py-4 text-ink sm:grid-cols-3 sm:px-5 sm:py-5">
             <div>
               <p class="text-sm font-bold text-leaf">Patient instruction</p>
               <p class="text-sm text-ink/70">Structured lessons that match your pace.</p>
@@ -351,7 +354,7 @@
 
     <script src="../assets/site-config.js"></script>
     <script src="../assets/supabase-config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4"></script>
     <script src="../assets/site.js?v=footer-icons"></script>
     <script src="home.js?v=mapkeys-no-sort"></script>
   </body>
