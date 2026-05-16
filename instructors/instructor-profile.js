@@ -136,11 +136,16 @@
     async function loadProfile() {
         if (!profile)
             return;
-        if (!slug || !hasSupabaseConfig() || !window.supabase) {
+        if (!slug || !hasSupabaseConfig()) {
             renderMissing();
             return;
         }
-        const client = window.supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        const supabase = await window.KS_LOAD_SUPABASE?.();
+        if (!supabase) {
+            renderMissing();
+            return;
+        }
+        const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
         const { data, error } = await client
             .from("instructors")
             .select("name, map_keys, transmission, phone, bio, profile_bio, photo_url, slug")
