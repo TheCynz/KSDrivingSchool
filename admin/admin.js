@@ -473,7 +473,7 @@
         adminUserCancelEdit.classList.add("hidden");
     }
     function passwordMeetsPolicy(password) {
-        return password.length >= 6 &&
+        return password.length >= 12 &&
             /[a-z]/.test(password) &&
             /[A-Z]/.test(password) &&
             /\d/.test(password) &&
