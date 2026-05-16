@@ -2,39 +2,11 @@
 (function () {
     const site = { ...(window.KS_SITE || {}) };
     const cookieKey = "ks_cookie_consent";
-    const supabaseClientUrl = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4";
-    let supabaseClientPromise = null;
     function hasSupabaseConfig() {
-        return window.KS_SUPABASE &&
+        return window.supabase &&
+            window.KS_SUPABASE &&
             !window.KS_SUPABASE.url.includes("YOUR_PROJECT_REF") &&
             !window.KS_SUPABASE.publishableKey.includes("YOUR_SUPABASE");
-    }
-    function loadSupabaseClient() {
-        if (!hasSupabaseConfig())
-            return Promise.resolve(null);
-        if (window.supabase)
-            return Promise.resolve(window.supabase);
-        if (supabaseClientPromise)
-            return supabaseClientPromise;
-        supabaseClientPromise = new Promise((resolve) => {
-            const existingScript = document.querySelector(`script[src="${supabaseClientUrl}"]`);
-            const script = existingScript || document.createElement("script");
-            script.addEventListener("load", () => resolve(window.supabase || null), { once: true });
-            script.addEventListener("error", () => resolve(null), { once: true });
-            if (!existingScript) {
-                script.src = supabaseClientUrl;
-                script.async = true;
-                document.head.appendChild(script);
-            }
-        });
-        return supabaseClientPromise;
-    }
-    function runWhenIdle(callback) {
-        if ("requestIdleCallback" in window) {
-            window.requestIdleCallback(callback, { timeout: 1800 });
-            return;
-        }
-        window.setTimeout(callback, 900);
     }
     function toCamelKey(key) {
         return key.replace(/_([a-z])/g, (_match, letter) => letter.toUpperCase());
@@ -82,10 +54,7 @@
     async function loadRemoteSiteSettings() {
         if (!hasSupabaseConfig())
             return;
-        const supabase = await loadSupabaseClient();
-        if (!supabase)
-            return;
-        const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        const client = window.supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
         const { data, error } = await client
             .from("site_settings")
             .select("key, value")
@@ -185,6 +154,5 @@
         showCookieBanner();
     }
     applySiteConfig();
-    window.KS_LOAD_SUPABASE = loadSupabaseClient;
-    runWhenIdle(loadRemoteSiteSettings);
+    loadRemoteSiteSettings();
 })();

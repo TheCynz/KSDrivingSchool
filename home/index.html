@@ -129,8 +129,8 @@
 
     <main>
       <section class="relative overflow-hidden bg-road text-white">
-        <img class="hero-media absolute inset-0 h-full w-full object-cover opacity-85" src="../assets/hero-blue-car.jpg" width="1440" height="897" alt="Driving instructor car on the road" fetchpriority="high" decoding="async">
-        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,35,78,.74),rgba(11,58,120,.36),rgba(11,58,120,.06))]"></div>
+        <img class="absolute inset-0 h-full w-full object-cover opacity-85" src="../assets/hero-blue-car.jpg" width="1440" height="897" alt="Driving instructor car on the road" fetchpriority="high" decoding="async">
+        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,35,78,.70),rgba(11,58,120,.38),rgba(11,58,120,.08))]"></div>
         <div class="relative z-10 mx-auto grid min-w-0 max-w-6xl gap-5 px-4 pb-6 pt-4 sm:gap-8 sm:px-5 sm:pb-28 sm:pt-10 lg:min-h-[720px] lg:grid-cols-[1fr_380px] lg:items-center">
           <div class="order-2 max-w-3xl lg:order-1">
             <p class="mb-4 inline-flex rounded-md bg-white/12 px-3 py-2 text-sm font-bold text-signal ring-1 ring-white/20 sm:mb-5">Local driving lessons in Shropshire</p>
@@ -146,7 +146,7 @@
               <span class="rounded-md bg-white/12 px-3 py-2 ring-1 ring-white/18">Local test routes</span>
             </div>
           </div>
-          <aside class="hero-panel mobile-safe-panel order-1 min-w-0 rounded-md p-4 text-ink shadow-2xl shadow-black/25 sm:p-5 lg:order-2">
+          <aside class="mobile-safe-panel order-1 min-w-0 rounded-md bg-white p-4 text-ink shadow-2xl shadow-black/25 sm:p-5 lg:order-2">
             <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Start here</p>
             <h2 class="mt-2 text-2xl font-black">Book lessons in minutes</h2>
             <form id="lesson-finder" class="mt-5 grid gap-4">
@@ -172,7 +172,7 @@
             </form>
           </aside>
         </div>
-        <div class="glass-strip relative z-10 shadow-2xl shadow-black/10 sm:absolute sm:bottom-0 sm:left-0 sm:right-0">
+        <div class="relative z-10 bg-white shadow-2xl shadow-black/10 sm:absolute sm:bottom-0 sm:left-0 sm:right-0">
           <div class="mx-auto grid max-w-6xl gap-4 px-4 py-4 text-ink sm:grid-cols-3 sm:px-5 sm:py-5">
             <div>
               <p class="text-sm font-bold text-leaf">Patient instruction</p>
@@ -201,7 +201,7 @@
           </div>
 
           <div class="mt-9 grid gap-6 sm:mt-12 lg:grid-cols-[1.1fr_.9fr]">
-            <div class="modern-card rounded-md bg-white p-4 sm:p-5">
+            <div class="rounded-md bg-white p-4 shadow-xl shadow-ink/8 sm:p-5">
               <div class="relative overflow-hidden rounded-md bg-[#d7e7f5]">
                 <svg class="h-auto w-full" viewBox="0 0 720 520" role="img" aria-label="Interactive Shropshire lesson coverage map">
                   <rect width="720" height="520" fill="#d7e7f5"></rect>
@@ -252,7 +252,7 @@
               </div>
             </div>
 
-            <div class="modern-card rounded-md bg-white p-5 sm:p-6">
+            <div class="rounded-md bg-white p-5 shadow-xl shadow-ink/8 sm:p-6">
               <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Instructors</p>
               <h3 id="selected-area-title" class="mt-2 text-2xl font-black">Shrewsbury instructors</h3>
               <p id="instructor-match-message" class="mt-2 hidden text-sm font-bold text-road"></p>
@@ -262,7 +262,7 @@
             </div>
           </div>
 
-          <section data-home-deals class="modern-card mt-8 hidden rounded-md bg-white p-4 sm:p-5">
+          <section data-home-deals class="mt-8 hidden rounded-md bg-white p-4 shadow-sm ring-1 ring-ink/8 sm:p-5">
             <div class="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-center">
               <div>
                 <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Current deals</p>
@@ -352,6 +352,7 @@
 
     <script src="../assets/site-config.js"></script>
     <script src="../assets/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4"></script>
     <script src="../assets/site.js?v=footer-icons"></script>
     <script src="home.js?v=mapkeys-no-sort"></script>
   </body>
