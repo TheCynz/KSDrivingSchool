@@ -1,5 +1,6 @@
 "use strict";
 (function () {
+    const shared = window.KS_SHARED;
     const gallery = document.querySelector("#pass-gallery");
     const dealPreview = document.querySelector("#deal-preview");
     const dealList = document.querySelector("#deal-list");
@@ -21,12 +22,7 @@
     let preferredTransmission = "";
     let instructors = [];
     let cachedAvailableAreaKeys = [];
-    const areaLabels = {
-        shrewsbury: "Shrewsbury",
-        telford: "Telford",
-        shawbury: "Shawbury",
-        boomerheath: "Boomerheath"
-    };
+    const areaLabels = shared.areaLabels;
     const fallbackInstructors = [
         {
             name: "Karen Jones",
@@ -75,11 +71,6 @@
         }
     ];
     const safeUrlPattern = /^(https?:)?\/\//i;
-    function hasSupabaseConfig() {
-        return window.KS_SUPABASE &&
-            !window.KS_SUPABASE.url.includes("YOUR_PROJECT_REF") &&
-            !window.KS_SUPABASE.publishableKey.includes("YOUR_SUPABASE");
-    }
     function alignHashTarget() {
         const targetId = decodeURIComponent(window.location.hash || "").replace(/^#/, "");
         if (!targetId)
@@ -538,7 +529,7 @@
         loadInstructors(null);
         loadDeals(null);
         loadReviews(null);
-        if (!hasSupabaseConfig()) {
+        if (!shared.hasSupabaseConfig()) {
             renderPassPlaceholder();
             alignHashTarget();
             return;
@@ -597,21 +588,7 @@
         event.preventDefault();
         applyLessonFinder(new FormData(lessonFinder));
     });
-    if (mobileNavToggle && primaryNav) {
-        mobileNavToggle.addEventListener("click", () => {
-            const expanded = mobileNavToggle.getAttribute("aria-expanded") === "true";
-            mobileNavToggle.setAttribute("aria-expanded", String(!expanded));
-            primaryNav.classList.toggle("hidden", expanded);
-            primaryNav.classList.toggle("flex", !expanded);
-        });
-        primaryNav.querySelectorAll("a").forEach((link) => {
-            link.addEventListener("click", () => {
-                mobileNavToggle.setAttribute("aria-expanded", "false");
-                primaryNav.classList.add("hidden");
-                primaryNav.classList.remove("flex");
-            });
-        });
-    }
+    shared.bindMobileNav(mobileNavToggle, primaryNav);
     bindReviewCarouselControls();
     loadPosts();
     window.addEventListener("hashchange", alignHashTarget);

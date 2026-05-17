@@ -1,16 +1,12 @@
 "use strict";
 (function () {
+    const shared = window.KS_SHARED;
     const site = { ...(window.KS_SITE || {}) };
     const cookieKey = "ks_cookie_consent";
     const supabaseClientUrl = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4";
     let supabaseClientPromise = null;
-    function hasSupabaseConfig() {
-        return window.KS_SUPABASE &&
-            !window.KS_SUPABASE.url.includes("YOUR_PROJECT_REF") &&
-            !window.KS_SUPABASE.publishableKey.includes("YOUR_SUPABASE");
-    }
     function loadSupabaseClient() {
-        if (!hasSupabaseConfig())
+        if (!shared.hasSupabaseConfig())
             return Promise.resolve(null);
         if (window.supabase)
             return Promise.resolve(window.supabase);
@@ -39,48 +35,31 @@
     function toCamelKey(key) {
         return key.replace(/_([a-z])/g, (_match, letter) => letter.toUpperCase());
     }
-    function safeHttpUrl(value, fallback) {
-        try {
-            const url = new URL(String(value || ""), window.location.href);
-            return url.protocol === "https:" || url.protocol === "http:" ? url.href : fallback;
-        }
-        catch (_error) {
-            return fallback;
-        }
-    }
-    function safeEmail(value, fallback) {
-        const email = String(value || "").trim();
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : fallback;
-    }
-    function safePhoneHref(value, fallback) {
-        const phone = String(value || "").trim();
-        return /^\+?[0-9\s().-]{7,24}$/.test(phone) ? phone.replace(/[^\d+]/g, "") : fallback;
-    }
     function applySiteConfig() {
         document.querySelectorAll("[data-current-year]").forEach((element) => {
             element.textContent = new Date().getFullYear();
         });
         document.querySelectorAll("[data-phone-link]").forEach((element) => {
             const phoneDisplay = site.phoneDisplay || "0333 7720143";
-            element.href = `tel:${safePhoneHref(site.phoneHref, "+443337720143")}`;
+            element.href = `tel:${shared.safePhoneHref(site.phoneHref, "+443337720143")}`;
             if (element.dataset.phoneLabel || element.children.length === 0) {
                 element.textContent = element.dataset.phoneLabel || phoneDisplay;
             }
         });
         document.querySelectorAll("[data-email-link]").forEach((element) => {
             const subject = element.dataset.emailSubject || "Driving lesson enquiry";
-            const email = safeEmail(site.email, "ksdrivingschool66@gmail.com");
+            const email = shared.safeEmail(site.email, "ksdrivingschool66@gmail.com");
             element.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
             if (element.dataset.emailLabel || element.children.length === 0) {
                 element.textContent = element.dataset.emailLabel || email;
             }
         });
         document.querySelectorAll("[data-facebook-link]").forEach((element) => {
-            element.href = safeHttpUrl(site.facebookUrl, "https://www.facebook.com/drivinglessonsshrewsbury/");
+            element.href = shared.safeHttpUrl(site.facebookUrl, "https://www.facebook.com/drivinglessonsshrewsbury/");
         });
     }
     async function loadRemoteSiteSettings() {
-        if (!hasSupabaseConfig())
+        if (!shared.hasSupabaseConfig())
             return;
         const supabase = await loadSupabaseClient();
         if (!supabase)

@@ -1,38 +1,21 @@
 "use strict";
 (function () {
+    const shared = window.KS_SHARED;
     const form = document.querySelector("#contact-form");
     const message = document.querySelector("#contact-message");
     const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
     const primaryNav = document.querySelector("#primary-nav");
-    if (mobileNavToggle && primaryNav) {
-        mobileNavToggle.addEventListener("click", () => {
-            const expanded = mobileNavToggle.getAttribute("aria-expanded") === "true";
-            mobileNavToggle.setAttribute("aria-expanded", String(!expanded));
-            primaryNav.classList.toggle("hidden", expanded);
-            primaryNav.classList.toggle("flex", !expanded);
-        });
-        primaryNav.querySelectorAll("a").forEach((link) => {
-            link.addEventListener("click", () => {
-                mobileNavToggle.setAttribute("aria-expanded", "false");
-                primaryNav.classList.add("hidden");
-                primaryNav.classList.remove("flex");
-            });
-        });
-    }
-    if (!form)
+    shared.bindMobileNav(mobileNavToggle, primaryNav);
+    if (!form || !message)
         return;
     function setMessage(text, isError) {
         message.textContent = text;
         message.classList.toggle("text-red-700", Boolean(isError));
     }
-    function safeEmail(value, fallback) {
-        const email = String(value || "").trim();
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : fallback;
-    }
     form.addEventListener("submit", (event) => {
         event.preventDefault();
         const site = window.KS_SITE || {};
-        const adminEmail = safeEmail(site.email, "ksdrivingschool66@gmail.com");
+        const adminEmail = shared.safeEmail(site.email, "ksdrivingschool66@gmail.com");
         const formData = new FormData(form);
         const name = String(formData.get("name") || "").trim();
         const email = String(formData.get("email") || "").trim();

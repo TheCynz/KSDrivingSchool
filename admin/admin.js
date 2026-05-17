@@ -1,5 +1,6 @@
 "use strict";
 (function () {
+    const shared = window.KS_SHARED;
     const loginForm = document.querySelector("#login-form");
     const loginMessage = document.querySelector("#login-message");
     const sessionPanel = document.querySelector("#session-panel");
@@ -78,12 +79,7 @@
     const adminIdleTimeoutMs = 2 * 60 * 60 * 1000;
     const adminIdleWarningMs = 5 * 60 * 1000;
     const adminLastActivityKey = "ks_admin_last_activity";
-    const areaLabels = {
-        shrewsbury: "Shrewsbury",
-        telford: "Telford",
-        shawbury: "Shawbury",
-        boomerheath: "Boomerheath"
-    };
+    const areaLabels = shared.areaLabels;
     let cachedPosts = [];
     let cachedDeals = [];
     let cachedReviews = [];
@@ -108,9 +104,7 @@
         passedAt.valueAsDate = new Date();
     }
     function hasSupabaseConfig() {
-        return window.KS_SUPABASE &&
-            !window.KS_SUPABASE.url.includes("YOUR_PROJECT_REF") &&
-            !window.KS_SUPABASE.publishableKey.includes("YOUR_SUPABASE");
+        return shared.hasSupabaseConfig();
     }
     if (!hasSupabaseConfig()) {
         loginMessage.textContent = "Add Supabase URL and publishable key in assets/supabase-config.js.";
