@@ -52,7 +52,15 @@
     const toggleInstructorForm = document.querySelector("#toggle-instructor-form");
     const instructorFormPanel = document.querySelector("#instructor-form-panel");
     const instructorListPanel = document.querySelector("#instructor-list-panel");
-    const mapKeyInputs = Array.from(document.querySelectorAll('input[name="map-keys"]'));
+    const mapKeys = document.querySelector("#map-keys");
+    const areaForm = document.querySelector("#area-form");
+    const areaId = document.querySelector("#area-id");
+    const areaFormTitle = document.querySelector("#area-form-title");
+    const areaSubmit = document.querySelector("#area-submit");
+    const areaCancelEdit = document.querySelector("#area-cancel-edit");
+    const areaMessage = document.querySelector("#area-message");
+    const adminAreas = document.querySelector("#admin-areas");
+    const refreshAreas = document.querySelector("#refresh-areas");
     const settingsForm = document.querySelector("#settings-form");
     const settingsMessage = document.querySelector("#settings-message");
     const adminUserForm = document.querySelector("#admin-user-form");
@@ -79,11 +87,11 @@
     const adminIdleTimeoutMs = 2 * 60 * 60 * 1000;
     const adminIdleWarningMs = 5 * 60 * 1000;
     const adminLastActivityKey = "ks_admin_last_activity";
-    const areaLabels = shared.areaLabels;
     let cachedPosts = [];
     let cachedDeals = [];
     let cachedReviews = [];
     let cachedInstructors = [];
+    let cachedAreas = [];
     let cachedAdminUsers = [];
     let adminLogoutTimer = 0;
     let adminWarningTimer = 0;
@@ -156,6 +164,7 @@
         loadAdminPosts();
         loadAdminDeals();
         loadAdminReviews();
+        loadAdminAreas();
         loadAdminInstructors();
         loadSiteSettings();
         loadAdminUsers();
@@ -449,38 +458,90 @@
         reviewSubmit.textContent = "Save review";
         reviewCancelEdit.classList.add("hidden");
     }
-    function getInstructorMapKeys(instructor) {
-        if (Array.isArray(instructor.map_keys) && instructor.map_keys.length > 0) {
-            return instructor.map_keys.filter((key) => areaLabels[key]);
-        }
-        return ["shrewsbury"];
+    function normalizeArea(area) {
+        return {
+            ...area,
+            match_terms: Array.isArray(area.match_terms) ? area.match_terms : [],
+            postcode_prefixes: Array.isArray(area.postcode_prefixes) ? area.postcode_prefixes : [],
+            sort_order: Number.isFinite(Number(area.sort_order)) ? Number(area.sort_order) : 100
+        };
     }
-    function setMapKeySelection(keys) {
-        const selected = new Set(keys.filter((key) => areaLabels[key]));
-        mapKeyInputs.forEach((input) => {
+    function sortAreas(areaA, areaB) {
+        const order = (Number(areaA.sort_order) || 100) - (Number(areaB.sort_order) || 100);
+        if (order !== 0)
+            return order;
+        return String(areaA.name || "").localeCompare(String(areaB.name || ""), "en-GB");
+    }
+    function instructorAreas(instructor) {
+        return Array.isArray(instructor.instructor_areas)
+            ? instructor.instructor_areas
+                .map((row) => row.area)
+                .filter(Boolean)
+                .sort(sortAreas)
+            : [];
+    }
+    function getInstructorAreaIds(instructor) {
+        return instructorAreas(instructor).map((area) => area.id).filter(Boolean);
+    }
+    function setAreaSelection(areaIds) {
+        const selected = new Set(areaIds);
+        areaInputs().forEach((input) => {
             input.checked = selected.has(input.value);
         });
     }
-    function selectedMapKeys() {
-        return mapKeyInputs
+    function selectedAreaIds() {
+        return areaInputs()
             .filter((input) => input.checked)
             .map((input) => input.value);
     }
-    function mapKeyLabel(keys) {
-        return keys
-            .filter((key) => areaLabels[key])
-            .map((key) => areaLabels[key])
-            .join(", ");
+    function areaInputs() {
+        return Array.from(document.querySelectorAll('input[name="area-ids"]'));
+    }
+    function areaLabel(areas) {
+        return areas.map((area) => area.name).join(", ");
+    }
+    function commaList(value) {
+        return String(value || "")
+            .split(",")
+            .map((part) => part.trim().toLowerCase())
+            .filter(Boolean);
+    }
+    function renderAreaCheckboxes(selectedIds = []) {
+        if (!mapKeys)
+            return;
+        if (cachedAreas.length === 0) {
+            mapKeys.innerHTML = `<p class="rounded-md border border-ink/10 bg-kerb px-4 py-3 text-sm font-bold text-ink/60">Add at least one visible area before assigning instructors.</p>`;
+            return;
+        }
+        const selected = new Set(selectedIds);
+        mapKeys.innerHTML = cachedAreas.map((area) => `
+      <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold text-ink transition has-[:checked]:border-leaf has-[:checked]:bg-kerb">
+        <input class="h-5 w-5 rounded border-ink/20 text-leaf" name="area-ids" type="checkbox" value="${escapeHtml(area.id)}" ${selected.has(area.id) ? "checked" : ""}>
+        ${escapeHtml(area.name)}
+      </label>
+    `).join("");
     }
     function resetInstructorForm() {
         instructorForm.reset();
         instructorId.value = "";
         instructorCurrentPhotoPath.value = "";
-        setMapKeySelection(["shrewsbury"]);
+        renderAreaCheckboxes(cachedAreas.filter((area) => area.is_primary).map((area) => area.id));
         document.querySelector("#instructor-active").checked = true;
         instructorFormTitle.textContent = "Instructors and areas";
         instructorSubmit.textContent = "Add instructor";
         instructorCancelEdit.classList.add("hidden");
+    }
+    function resetAreaForm() {
+        areaForm.reset();
+        areaId.value = "";
+        document.querySelector("#area-map-x").value = "360";
+        document.querySelector("#area-map-y").value = "260";
+        document.querySelector("#area-sort-order").value = "100";
+        document.querySelector("#area-visible").checked = true;
+        document.querySelector("#area-primary").checked = false;
+        areaFormTitle.textContent = "Lesson areas";
+        areaSubmit.textContent = "Save area";
+        areaCancelEdit.classList.add("hidden");
     }
     function resetAdminUserForm() {
         adminUserForm.reset();
@@ -664,11 +725,65 @@
       `;
         }).join("");
     }
+    async function loadAdminAreas() {
+        if (!adminAreas)
+            return;
+        adminAreas.innerHTML = `<p class="text-sm text-ink/60">Loading areas...</p>`;
+        const { data, error } = await client
+            .from("areas")
+            .select("id, name, slug, is_visible, map_x, map_y, is_primary, match_terms, postcode_prefixes, sort_order, updated_at, created_at")
+            .order("sort_order", { ascending: true })
+            .order("name", { ascending: true });
+        if (error) {
+            cachedAreas = [];
+            adminAreas.innerHTML = `<p class="text-sm text-red-700">Could not load areas. Confirm the area migration is installed.</p>`;
+            renderAreaCheckboxes();
+            return;
+        }
+        cachedAreas = (data || []).map(normalizeArea).sort(sortAreas);
+        renderAreaCheckboxes();
+        if (cachedAreas.length === 0) {
+            adminAreas.innerHTML = `<p class="text-sm text-ink/60">No areas yet.</p>`;
+            return;
+        }
+        adminAreas.innerHTML = cachedAreas.map((area) => {
+            const status = area.is_visible ? "Visible" : "Hidden";
+            const primary = area.is_primary ? "Primary" : "Standard";
+            const prefixes = area.postcode_prefixes.length > 0 ? area.postcode_prefixes.join(", ") : "No prefixes";
+            const terms = area.match_terms.length > 0 ? area.match_terms.join(", ") : "Name only";
+            return `
+        <article class="rounded-md border border-ink/10 p-4">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-black">${escapeHtml(area.name)}</h3>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(status)}</span>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(primary)}</span>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">Order ${escapeHtml(area.sort_order)}</span>
+              </div>
+              <p class="mt-2 text-sm font-bold text-leaf">${escapeHtml(area.slug)}</p>
+              <p class="mt-2 text-sm leading-6 text-ink/70">Marker ${escapeHtml(area.map_x)}, ${escapeHtml(area.map_y)}</p>
+              <p class="mt-1 text-sm leading-6 text-ink/62">Prefixes: ${escapeHtml(prefixes)}</p>
+              <p class="mt-1 text-sm leading-6 text-ink/62">Search terms: ${escapeHtml(terms)}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="edit-area rounded-md bg-kerb px-4 py-2 text-sm font-bold text-road transition hover:bg-signal hover:text-ink" data-area-id="${area.id}" type="button">Edit</button>
+              <button class="toggle-area-visible rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" data-area-id="${area.id}" type="button">${area.is_visible ? "Hide" : "Show"}</button>
+              <button class="delete-area rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50" data-area-id="${area.id}" type="button">Delete</button>
+            </div>
+          </div>
+        </article>
+      `;
+        }).join("");
+    }
     async function loadAdminInstructors() {
         adminInstructors.innerHTML = `<p class="text-sm text-ink/60">Loading instructors...</p>`;
+        if (cachedAreas.length === 0) {
+            await loadAdminAreas();
+        }
         const { data, error } = await client
             .from("instructors")
-            .select("id, name, map_keys, transmission, phone, bio, profile_bio, photo_path, photo_url, active")
+            .select("id, name, transmission, phone, bio, profile_bio, photo_path, photo_url, active, instructor_areas(area:areas(id, name, slug, sort_order))")
             .order("name", { ascending: true });
         if (error) {
             adminInstructors.innerHTML = `<p class="text-sm text-red-700">Could not load instructors. Confirm the instructors table and RLS policies are installed.</p>`;
@@ -684,7 +799,8 @@
             const status = instructor.active ? "Visible" : "Hidden";
             const phone = instructor.phone ? `<p class="mt-1 text-sm text-ink/60">${escapeHtml(instructor.phone)}</p>` : "";
             const profileDescription = instructor.profile_bio ? `<p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(instructor.profile_bio)}</p>` : "";
-            const mapKeys = getInstructorMapKeys(instructor);
+            const assignedAreas = instructorAreas(instructor);
+            const assignedAreaLabel = areaLabel(assignedAreas) || "No areas assigned";
             const instructorPhotoUrl = safeImageUrl(instructor.photo_url);
             const photo = instructorPhotoUrl
                 ? `<img class="h-20 w-20 rounded-md object-cover" src="${escapeHtml(instructorPhotoUrl)}" alt="" loading="lazy" decoding="async">`
@@ -698,9 +814,9 @@
                 <div class="flex flex-wrap items-center gap-2">
                   <h4 class="font-black">${escapeHtml(instructor.name)}</h4>
                   <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${status}</span>
-                  <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(mapKeyLabel(mapKeys))}</span>
+                  <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(assignedAreaLabel)}</span>
                 </div>
-                <p class="mt-1 text-sm font-bold text-leaf">${escapeHtml(mapKeyLabel(mapKeys))}</p>
+                <p class="mt-1 text-sm font-bold text-leaf">${escapeHtml(assignedAreaLabel)}</p>
                 <p class="mt-1 text-sm text-ink/70">${escapeHtml(instructor.transmission)}</p>
                 ${phone}
                 <p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(instructor.bio || "")}</p>
@@ -863,6 +979,26 @@
         reviewCancelEdit.classList.remove("hidden");
         reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    function editArea(id) {
+        const area = cachedAreas.find((item) => item.id === id);
+        if (!area)
+            return;
+        showAdminView("areas");
+        areaId.value = area.id;
+        document.querySelector("#area-name").value = area.name || "";
+        document.querySelector("#area-slug").value = area.slug || "";
+        document.querySelector("#area-map-x").value = String(Number(area.map_x) || 360);
+        document.querySelector("#area-map-y").value = String(Number(area.map_y) || 260);
+        document.querySelector("#area-sort-order").value = String(area.sort_order ?? 100);
+        document.querySelector("#area-postcode-prefixes").value = area.postcode_prefixes.join(", ");
+        document.querySelector("#area-match-terms").value = area.match_terms.join(", ");
+        document.querySelector("#area-visible").checked = Boolean(area.is_visible);
+        document.querySelector("#area-primary").checked = Boolean(area.is_primary);
+        areaFormTitle.textContent = `Edit ${area.name || "area"}`;
+        areaSubmit.textContent = "Save area";
+        areaCancelEdit.classList.remove("hidden");
+        areaForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     function editInstructor(id) {
         const instructor = cachedInstructors.find((item) => item.id === id);
         if (!instructor)
@@ -872,7 +1008,7 @@
         instructorId.value = instructor.id;
         instructorCurrentPhotoPath.value = instructor.photo_path || "";
         document.querySelector("#instructor-name").value = instructor.name || "";
-        setMapKeySelection(getInstructorMapKeys(instructor));
+        renderAreaCheckboxes(getInstructorAreaIds(instructor));
         document.querySelector("#transmission").value = instructor.transmission || "Manual";
         document.querySelector("#instructor-phone").value = instructor.phone || "";
         document.querySelector("#instructor-photo").value = "";
@@ -1075,6 +1211,49 @@
         setMessage(reviewMessage, editingReviewId ? "Review updated." : "Review created.", false);
         loadAdminReviews();
     });
+    areaForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setMessage(areaMessage, "Saving area...", false);
+        const formData = new FormData(areaForm);
+        const editingAreaId = String(formData.get("area-id")).trim();
+        const name = String(formData.get("area-name")).trim();
+        const slug = slugify(formData.get("area-slug") || name);
+        const mapX = Number(formData.get("area-map-x"));
+        const mapY = Number(formData.get("area-map-y"));
+        const sortOrder = Number(formData.get("area-sort-order"));
+        const matchTerms = commaList(formData.get("area-match-terms"));
+        const postcodePrefixes = commaList(formData.get("area-postcode-prefixes")).map((prefix) => prefix.replace(/\s+/g, ""));
+        if (!name || !slug) {
+            setMessage(areaMessage, "Area name and slug are required.", true);
+            return;
+        }
+        if (!Number.isFinite(mapX) || mapX < 0 || mapX > 720 || !Number.isFinite(mapY) || mapY < 0 || mapY > 520) {
+            setMessage(areaMessage, "Map coordinates must sit inside the 720 by 520 map.", true);
+            return;
+        }
+        const areaPayload = {
+            name,
+            slug,
+            is_visible: formData.get("area-visible") === "on",
+            map_x: mapX,
+            map_y: mapY,
+            is_primary: formData.get("area-primary") === "on",
+            sort_order: Number.isFinite(sortOrder) ? sortOrder : 100,
+            match_terms: matchTerms.length > 0 ? matchTerms : [name.toLowerCase()],
+            postcode_prefixes: postcodePrefixes
+        };
+        const { error } = editingAreaId
+            ? await client.from("areas").update(areaPayload).eq("id", editingAreaId)
+            : await client.from("areas").insert(areaPayload);
+        if (error) {
+            setMessage(areaMessage, error.message, true);
+            return;
+        }
+        resetAreaForm();
+        setMessage(areaMessage, editingAreaId ? "Area updated." : "Area created.", false);
+        await loadAdminAreas();
+        loadAdminInstructors();
+    });
     instructorForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         setMessage(instructorMessage, "Saving instructor...", false);
@@ -1083,11 +1262,11 @@
         const editingInstructorId = String(formData.get("instructor-id")).trim();
         const oldPhotoPath = String(formData.get("instructor-current-photo-path")).trim();
         const name = String(formData.get("instructor-name")).trim();
-        const mapKeys = selectedMapKeys();
+        const assignedAreaIds = selectedAreaIds();
         let photoPath = oldPhotoPath || null;
         let photoUrl = null;
         let uploadedNewPhoto = false;
-        if (mapKeys.length === 0) {
+        if (assignedAreaIds.length === 0) {
             setMessage(instructorMessage, "Choose at least one lesson area.", true);
             return;
         }
@@ -1123,7 +1302,6 @@
         }
         const instructorPayload = {
             name: String(formData.get("instructor-name")).trim(),
-            map_keys: mapKeys,
             transmission: formData.get("transmission"),
             phone: String(formData.get("instructor-phone")).trim() || null,
             bio: String(formData.get("instructor-bio")).trim() || null,
@@ -1145,6 +1323,38 @@
                 await client.storage.from(window.KS_SUPABASE.bucket).remove([photoPath]);
             }
             setMessage(instructorMessage, error.message, true);
+            return;
+        }
+        let savedInstructorId = editingInstructorId;
+        if (!savedInstructorId) {
+            const { data: createdInstructor, error: lookupError } = await client
+                .from("instructors")
+                .select("id")
+                .eq("slug", instructorPayload.slug)
+                .maybeSingle();
+            if (lookupError || !createdInstructor?.id) {
+                setMessage(instructorMessage, lookupError?.message || "Instructor saved, but area assignment could not be confirmed.", true);
+                return;
+            }
+            savedInstructorId = createdInstructor.id;
+        }
+        const { error: deleteAreaError } = await client
+            .from("instructor_areas")
+            .delete()
+            .eq("instructor_id", savedInstructorId);
+        if (deleteAreaError) {
+            setMessage(instructorMessage, deleteAreaError.message, true);
+            return;
+        }
+        const areaRows = assignedAreaIds.map((assignedAreaId) => ({
+            instructor_id: savedInstructorId,
+            area_id: assignedAreaId
+        }));
+        const { error: insertAreaError } = await client
+            .from("instructor_areas")
+            .insert(areaRows);
+        if (insertAreaError) {
+            setMessage(instructorMessage, insertAreaError.message, true);
             return;
         }
         if (editingInstructorId && uploadedNewPhoto && oldPhotoPath) {
@@ -1255,6 +1465,48 @@
         setMessage(instructorMessage, "Instructor removed.", false);
         loadAdminInstructors();
     });
+    adminAreas.addEventListener("click", async (event) => {
+        const editButton = event.target.closest(".edit-area");
+        if (editButton) {
+            editArea(editButton.dataset.areaId);
+            return;
+        }
+        const visibleButton = event.target.closest(".toggle-area-visible");
+        if (visibleButton) {
+            const area = cachedAreas.find((item) => item.id === visibleButton.dataset.areaId);
+            if (!area)
+                return;
+            const { error } = await client
+                .from("areas")
+                .update({ is_visible: !area.is_visible })
+                .eq("id", area.id);
+            if (error) {
+                setMessage(areaMessage, error.message, true);
+                return;
+            }
+            setMessage(areaMessage, area.is_visible ? "Area hidden." : "Area visible.", false);
+            await loadAdminAreas();
+            loadAdminInstructors();
+            return;
+        }
+        const deleteButton = event.target.closest(".delete-area");
+        if (!deleteButton)
+            return;
+        const { error } = await client
+            .from("areas")
+            .delete()
+            .eq("id", deleteButton.dataset.areaId);
+        if (error) {
+            setMessage(areaMessage, error.message, true);
+            return;
+        }
+        if (areaId.value === deleteButton.dataset.areaId) {
+            resetAreaForm();
+        }
+        setMessage(areaMessage, "Area deleted.", false);
+        await loadAdminAreas();
+        loadAdminInstructors();
+    });
     adminPosts.addEventListener("click", async (event) => {
         const editButton = event.target.closest(".edit-post");
         if (editButton) {
@@ -1350,8 +1602,6 @@
         const deleteButton = event.target.closest(".delete-review");
         if (!deleteButton)
             return;
-        if (!window.confirm("Delete this review?"))
-            return;
         const { error } = await client
             .from("reviews")
             .delete()
@@ -1382,8 +1632,6 @@
         }
         const deleteButton = event.target.closest(".delete-admin-user");
         if (!deleteButton)
-            return;
-        if (!window.confirm("Remove admin access for this user?"))
             return;
         try {
             await invokeAdminUsers({
@@ -1481,6 +1729,10 @@
         resetReviewForm();
         setMessage(reviewMessage, "", false);
     });
+    areaCancelEdit.addEventListener("click", () => {
+        resetAreaForm();
+        setMessage(areaMessage, "", false);
+    });
     instructorCancelEdit.addEventListener("click", () => {
         resetInstructorForm();
         setPanelOpen(instructorFormPanel, toggleInstructorForm, false, instructorListPanel);
@@ -1494,6 +1746,7 @@
     refreshPosts.addEventListener("click", loadAdminPosts);
     refreshDeals.addEventListener("click", loadAdminDeals);
     refreshReviews.addEventListener("click", loadAdminReviews);
+    refreshAreas.addEventListener("click", loadAdminAreas);
     refreshInstructors.addEventListener("click", loadAdminInstructors);
     refreshAdminUsers.addEventListener("click", loadAdminUsers);
     toggleInstructorForm?.addEventListener("click", () => {

@@ -14,62 +14,15 @@
     const instructorMatchMessage = document.querySelector("#instructor-match-message");
     const lessonFinder = document.querySelector("#lesson-finder");
     const lessonFinderMessage = document.querySelector("#lesson-finder-message");
-    const areaTabs = Array.from(document.querySelectorAll(".area-tab"));
-    const mapAreas = Array.from(document.querySelectorAll(".map-area"));
+    const areaTabsContainer = document.querySelector("#area-tabs");
+    const coverageMapMarkers = document.querySelector("#coverage-map-markers");
     const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
     const primaryNav = document.querySelector("#primary-nav");
-    let selectedArea = "shrewsbury";
+    let selectedAreaSlug = "";
     let preferredTransmission = "";
     let instructors = [];
-    let cachedAvailableAreaKeys = [];
-    const areaLabels = shared.areaLabels;
-    const fallbackInstructors = [
-        {
-            name: "Karen Jones",
-            map_keys: ["shrewsbury", "shawbury", "telford"],
-            transmission: "Manual",
-            phone: "07931 673337",
-            slug: "karen-jones",
-            photo_url: "",
-            bio: "Grade A instructor covering Shrewsbury, Shawbury and nearby villages."
-        },
-        {
-            name: "Adam Snaith",
-            map_keys: ["telford"],
-            transmission: "Manual",
-            phone: "07555 618618",
-            slug: "adam-snaith",
-            photo_url: "",
-            bio: "Telford instructor for learners preparing on local test routes."
-        },
-        {
-            name: "Vanessa Marmont",
-            map_keys: ["shrewsbury"],
-            transmission: "Manual",
-            phone: "0333 7720143",
-            slug: "vanessa-marmont",
-            photo_url: "",
-            bio: "Experienced instructor covering Shrewsbury and surrounding villages."
-        },
-        {
-            name: "Shawbury coverage",
-            map_keys: ["shawbury"],
-            transmission: "Manual and automatic",
-            phone: "0333 7720143",
-            slug: "shawbury-coverage",
-            photo_url: "",
-            bio: "Call the office to match with the right available instructor."
-        },
-        {
-            name: "Boomerheath coverage",
-            map_keys: ["boomerheath"],
-            transmission: "Manual and automatic",
-            phone: "0333 7720143",
-            slug: "boomerheath-coverage",
-            photo_url: "",
-            bio: "Nearby Shropshire lessons arranged through the office."
-        }
-    ];
+    let areas = [];
+    let cachedVisibleAreaSlugs = [];
     const safeUrlPattern = /^(https?:)?\/\//i;
     function alignHashTarget() {
         const targetId = decodeURIComponent(window.location.hash || "").replace(/^#/, "");
@@ -336,18 +289,58 @@
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/^-|-$/g, "") || "instructor";
     }
-    function instructorMapKeys(instructor) {
-        if (Array.isArray(instructor.map_keys) && instructor.map_keys.length > 0) {
-            return instructor.map_keys.filter((key) => areaLabels[key]);
+    function normalizeArea(area) {
+        if (!area || !area.slug || !area.name)
+            return null;
+        return {
+            id: area.id || "",
+            name: String(area.name),
+            slug: String(area.slug),
+            is_visible: area.is_visible !== false,
+            map_x: Number(area.map_x),
+            map_y: Number(area.map_y),
+            is_primary: Boolean(area.is_primary),
+            match_terms: Array.isArray(area.match_terms) ? area.match_terms.map((term) => String(term).toLowerCase()) : [],
+            postcode_prefixes: Array.isArray(area.postcode_prefixes) ? area.postcode_prefixes.map((prefix) => String(prefix).toLowerCase().replace(/\s+/g, "")) : [],
+            sort_order: Number.isFinite(Number(area.sort_order)) ? Number(area.sort_order) : 100
+        };
+    }
+    function sortAreas(areaA, areaB) {
+        const order = areaA.sort_order - areaB.sort_order;
+        if (order !== 0)
+            return order;
+        return areaA.name.localeCompare(areaB.name, "en-GB");
+    }
+    function normalizeInstructor(instructor) {
+        const instructorAreas = Array.isArray(instructor.instructor_areas)
+            ? instructor.instructor_areas
+                .map((row) => normalizeArea(row.area))
+                .filter(Boolean)
+                .filter((area) => area.is_visible)
+                .sort(sortAreas)
+            : [];
+        return {
+            ...instructor,
+            areas: instructorAreas
+        };
+    }
+    function instructorAreas(instructor) {
+        if (Array.isArray(instructor.areas)) {
+            return instructor.areas.filter((area) => area && area.slug && area.name);
         }
         return [];
     }
     function instructorAreaLabel(instructor) {
-        const labels = instructorMapKeys(instructor).map((key) => areaLabels[key]);
+        const labels = instructorAreas(instructor).map((area) => area.name);
         return labels.length > 0 ? labels.join(", ") : "Shropshire";
     }
-    function availableAreaKeys() {
-        return cachedAvailableAreaKeys;
+    function visibleAreas() {
+        return cachedVisibleAreaSlugs
+            .map((slug) => areas.find((area) => area.slug === slug))
+            .filter(Boolean);
+    }
+    function selectedArea() {
+        return areas.find((area) => area.slug === selectedAreaSlug) || null;
     }
     function instructorSortValue(instructor) {
         return slugify(instructor.slug || instructor.name) === "karen-jones" ? 0 : 1;
@@ -397,44 +390,31 @@
     function renderInstructors() {
         if (!instructorList || !selectedAreaTitle)
             return;
-        const availableKeys = availableAreaKeys();
-        if (!availableKeys.includes(selectedArea)) {
-            selectedArea = availableKeys[0] || "";
+        const visible = visibleAreas();
+        const availableSlugs = visible.map((area) => area.slug);
+        if (!availableSlugs.includes(selectedAreaSlug)) {
+            selectedAreaSlug = availableSlugs[0] || "";
         }
-        areaTabs.forEach((tab) => {
-            tab.classList.toggle("hidden", !availableKeys.includes(tab.dataset.mapKey));
-        });
-        mapAreas.forEach((area) => {
-            area.classList.toggle("hidden", !availableKeys.includes(area.dataset.mapKey));
-            area.setAttribute("aria-hidden", String(!availableKeys.includes(area.dataset.mapKey)));
-        });
-        if (!selectedArea) {
+        renderAreaTabs(visible);
+        renderMapMarkers(visible);
+        const activeArea = selectedArea();
+        if (!activeArea) {
             selectedAreaTitle.textContent = "No instructors listed yet";
             instructorMatchMessage?.classList.add("hidden");
             instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check current lesson availability.</div>`;
             alignHashTarget();
             return;
         }
-        selectedAreaTitle.textContent = `${areaLabels[selectedArea]} instructors`;
-        areaTabs.forEach((tab) => {
-            const active = tab.dataset.mapKey === selectedArea;
-            tab.classList.toggle("bg-road", active);
-            tab.classList.toggle("text-white", active);
-            tab.classList.toggle("bg-white", !active);
-            tab.classList.toggle("text-ink", !active);
-        });
-        mapAreas.forEach((area) => {
-            area.classList.toggle("map-area-active", area.dataset.mapKey === selectedArea);
-        });
+        selectedAreaTitle.textContent = `${activeArea.name} instructors`;
         const matching = instructors
-            .filter((instructor) => instructorMapKeys(instructor).includes(selectedArea))
+            .filter((instructor) => instructorAreas(instructor).some((area) => area.slug === selectedAreaSlug))
             .sort(sortPublicInstructors);
         const transmissionMatches = matching.filter(matchesTransmission);
         if (instructorMatchMessage) {
             if (preferredTransmission) {
                 instructorMatchMessage.textContent = transmissionMatches.length
                     ? `${transmissionMatches.length} ${preferredTransmission} match${transmissionMatches.length === 1 ? "" : "es"} highlighted. Tap a card to view the instructor profile.`
-                    : `No ${preferredTransmission} match is listed for ${areaLabels[selectedArea]} yet.`;
+                    : `No ${preferredTransmission} match is listed for ${activeArea.name} yet.`;
                 instructorMatchMessage.classList.remove("hidden");
             }
             else {
@@ -442,17 +422,66 @@
             }
         }
         if (matching.length === 0) {
-            instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check availability for ${areaLabels[selectedArea]}.</div>`;
+            instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check availability for ${escapeHtml(activeArea.name)}.</div>`;
             alignHashTarget();
             return;
         }
         instructorList.innerHTML = matching.map(instructorCard).join("");
         alignHashTarget();
     }
-    function setSelectedArea(mapKey, options = {}) {
-        if (!areaLabels[mapKey] || !availableAreaKeys().includes(mapKey))
+    function renderAreaTabs(visible) {
+        if (!areaTabsContainer)
             return;
-        selectedArea = mapKey;
+        areaTabsContainer.innerHTML = visible.map((area) => {
+            const active = area.slug === selectedAreaSlug;
+            return `
+        <button class="area-tab rounded-md border border-ink/10 px-3 py-2 text-sm font-black transition ${active ? "bg-road text-white" : "bg-white text-ink hover:border-leaf hover:text-leaf"}" data-area-slug="${escapeHtml(area.slug)}" type="button">${escapeHtml(area.name)}</button>
+      `;
+        }).join("");
+        areaTabsContainer.querySelectorAll("[data-area-slug]").forEach((tab) => {
+            tab.addEventListener("click", () => setSelectedArea(tab.dataset.areaSlug));
+        });
+    }
+    function renderMapMarkers(visible) {
+        if (!coverageMapMarkers)
+            return;
+        coverageMapMarkers.innerHTML = visible.map((area) => {
+            const x = Math.max(0, Math.min(720, Number(area.map_x) || 360));
+            const y = Math.max(0, Math.min(520, Number(area.map_y) || 260));
+            const active = area.slug === selectedAreaSlug;
+            const primary = area.is_primary;
+            const haloRadius = primary ? 82 : 52;
+            const markerRadius = primary ? 46 : 29;
+            const fill = primary ? (active ? "#0b3a78" : "#1769aa") : "#f6c445";
+            const labelWidth = Math.min(172, Math.max(92, area.name.length * 10 + 28));
+            const labelX = Math.max(8, Math.min(720 - labelWidth - 8, x - labelWidth / 2));
+            const labelY = y > 430 ? y - 58 : y - 46;
+            const textY = labelY + 20;
+            return `
+        <g class="map-area cursor-pointer ${active ? "map-area-active" : ""}" data-area-slug="${escapeHtml(area.slug)}" role="button" tabindex="0" aria-label="${escapeHtml(area.name)} instructors">
+          <circle cx="${x}" cy="${y}" r="${haloRadius}" fill="${fill}" opacity=".16"></circle>
+          <circle cx="${x}" cy="${y}" r="${markerRadius}" fill="${fill}" opacity=".96"></circle>
+          <circle cx="${x}" cy="${y}" r="6" fill="${primary ? "#fff" : "#17211d"}"></circle>
+          <rect x="${labelX}" y="${labelY}" width="${labelWidth}" height="30" rx="15" fill="${fill}"></rect>
+          <text x="${labelX + labelWidth / 2}" y="${textY}" text-anchor="middle" class="${primary ? "fill-white" : "fill-ink"} text-[15px] font-black">${escapeHtml(area.name)}</text>
+        </g>
+      `;
+        }).join("");
+        coverageMapMarkers.querySelectorAll("[data-area-slug]").forEach((marker) => {
+            const choose = () => setSelectedArea(marker.dataset.areaSlug);
+            marker.addEventListener("click", choose);
+            marker.addEventListener("keydown", (event) => {
+                if (event.key !== "Enter" && event.key !== " ")
+                    return;
+                event.preventDefault();
+                choose();
+            });
+        });
+    }
+    function setSelectedArea(areaSlug, options = {}) {
+        if (!cachedVisibleAreaSlugs.includes(areaSlug))
+            return;
+        selectedAreaSlug = areaSlug;
         if (!options.keepTransmission) {
             preferredTransmission = "";
         }
@@ -463,18 +492,19 @@
         const compact = normalized.replace(/\s+/g, "");
         if (!normalized)
             return "";
-        if (normalized.includes("boomer") || normalized.includes("heath"))
-            return "boomerheath";
-        if (normalized.includes("shawbury"))
-            return "shawbury";
-        if (normalized.includes("telford") || /^tf/.test(compact))
-            return "telford";
-        if (normalized.includes("shrewsbury") || normalized.includes("minsterley") || normalized.includes("pontesbury"))
-            return "shrewsbury";
-        if (/^sy4/.test(compact))
-            return "shawbury";
-        if (/^sy[1-3]/.test(compact))
-            return "shrewsbury";
+        const directArea = areas.find((area) => {
+            const areaName = area.name.toLowerCase();
+            const areaSlug = area.slug.replace(/-/g, " ");
+            const terms = new Set([areaName, areaSlug, ...(area.match_terms || [])]);
+            return Array.from(terms).some((term) => term && normalized.includes(term));
+        });
+        if (directArea)
+            return directArea.slug;
+        const postcodeArea = areas.find((area) => {
+            return (area.postcode_prefixes || []).some((prefix) => prefix && compact.startsWith(prefix));
+        });
+        if (postcodeArea)
+            return postcodeArea.slug;
         return "";
     }
     function applyLessonFinder(formData) {
@@ -486,46 +516,69 @@
             }
             return;
         }
-        if (!availableAreaKeys().includes(area)) {
+        if (!cachedVisibleAreaSlugs.includes(area)) {
             if (lessonFinderMessage) {
-                lessonFinderMessage.textContent = `No instructor is listed for ${areaLabels[area]} yet. Call 0333 7720143 and we will check availability.`;
+                const areaName = areas.find((item) => item.slug === area)?.name || "that area";
+                lessonFinderMessage.textContent = `No instructor is listed for ${areaName} yet. Call 0333 7720143 and we will check availability.`;
             }
             return;
         }
         setSelectedArea(area, { keepTransmission: true });
-        document.querySelector("#areas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.querySelector("#instructors")?.scrollIntoView({ behavior: "smooth", block: "start" });
         if (lessonFinderMessage) {
-            lessonFinderMessage.textContent = `${areaLabels[area]} selected below. Matching ${preferredTransmission} instructors are highlighted.`;
+            const areaName = areas.find((item) => item.slug === area)?.name || "Area";
+            lessonFinderMessage.textContent = `${areaName} selected below. Matching ${preferredTransmission} instructors are highlighted.`;
         }
+    }
+    async function loadAreas(client) {
+        if (!client) {
+            areas = [];
+            cacheVisibleAreas();
+            renderInstructors();
+            return;
+        }
+        const { data, error } = await client
+            .from("areas")
+            .select("id, name, slug, is_visible, map_x, map_y, is_primary, match_terms, postcode_prefixes, sort_order")
+            .eq("is_visible", true)
+            .order("sort_order", { ascending: true })
+            .order("name", { ascending: true });
+        areas = error || !data ? [] : data.map(normalizeArea).filter(Boolean).sort(sortAreas);
+        cacheVisibleAreas();
+        renderInstructors();
     }
     async function loadInstructors(client) {
         if (!instructorList)
             return;
         if (!client) {
-            instructors = fallbackInstructors;
-            cacheAvailableAreas();
+            instructors = [];
+            cacheVisibleAreas();
             renderInstructors();
             return;
         }
         const { data, error } = await client
             .from("instructors")
-            .select("name, map_keys, transmission, phone, bio, slug, photo_url")
+            .select("name, transmission, phone, bio, slug, photo_url, instructor_areas(area:areas(id, name, slug, is_visible, map_x, map_y, is_primary, match_terms, postcode_prefixes, sort_order))")
             .eq("active", true)
             .order("name", { ascending: true });
-        instructors = error || !data || data.length === 0 ? fallbackInstructors : data;
-        cacheAvailableAreas();
+        instructors = error || !data ? [] : data.map(normalizeInstructor);
+        cacheVisibleAreas();
         renderInstructors();
     }
-    function cacheAvailableAreas() {
-        const availableKeys = new Set();
+    function cacheVisibleAreas() {
+        const availableSlugs = new Set(areas.map((area) => area.slug));
         instructors.forEach((instructor) => {
-            instructorMapKeys(instructor).forEach((key) => {
-                availableKeys.add(key);
+            instructorAreas(instructor).forEach((area) => {
+                availableSlugs.add(area.slug);
             });
         });
-        cachedAvailableAreaKeys = Object.keys(areaLabels).filter((key) => availableKeys.has(key));
+        cachedVisibleAreaSlugs = areas
+            .filter((area) => area.is_visible && availableSlugs.has(area.slug))
+            .sort(sortAreas)
+            .map((area) => area.slug);
     }
     async function loadPosts() {
+        loadAreas(null);
         loadInstructors(null);
         loadDeals(null);
         loadReviews(null);
@@ -541,7 +594,10 @@
             return;
         }
         const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
-        loadInstructors(client);
+        await Promise.all([
+            loadAreas(client),
+            loadInstructors(client)
+        ]);
         loadDeals(client);
         loadReviews(client);
         if (!gallery)
@@ -565,25 +621,6 @@
         gallery.innerHTML = data.map(postCard).join("");
         alignHashTarget();
     }
-    areaTabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-            setSelectedArea(tab.dataset.mapKey);
-        });
-    });
-    mapAreas.forEach((area) => {
-        area.setAttribute("role", "button");
-        area.setAttribute("tabindex", "0");
-        area.setAttribute("aria-label", `${areaLabels[area.dataset.mapKey]} instructors`);
-        area.addEventListener("click", () => {
-            setSelectedArea(area.dataset.mapKey);
-        });
-        area.addEventListener("keydown", (event) => {
-            if (event.key !== "Enter" && event.key !== " ")
-                return;
-            event.preventDefault();
-            setSelectedArea(area.dataset.mapKey);
-        });
-    });
     lessonFinder?.addEventListener("submit", (event) => {
         event.preventDefault();
         applyLessonFinder(new FormData(lessonFinder));

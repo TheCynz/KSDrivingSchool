@@ -1,7 +1,6 @@
 "use strict";
 (function () {
     const shared = window.KS_SHARED;
-    const areaLabels = shared.areaLabels;
     const profile = document.querySelector("#instructor-profile");
     const heading = document.querySelector("#profile-heading");
     const intro = document.querySelector("#profile-intro");
@@ -20,13 +19,19 @@
         return shared.safeEmail(window.KS_SITE?.email, "ksdrivingschool66@gmail.com");
     }
     shared.bindMobileNav(mobileNavToggle, primaryNav);
-    function instructorMapKeys(instructor) {
-        return Array.isArray(instructor.map_keys)
-            ? instructor.map_keys.filter((key) => areaLabels[key])
+    function instructorAreas(instructor) {
+        return Array.isArray(instructor.instructor_areas)
+            ? instructor.instructor_areas
+                .map((row) => row.area)
+                .filter((area) => area && area.name && area.is_visible !== false)
+                .sort((areaA, areaB) => {
+                const order = (Number(areaA.sort_order) || 100) - (Number(areaB.sort_order) || 100);
+                return order !== 0 ? order : String(areaA.name).localeCompare(String(areaB.name), "en-GB");
+            })
             : [];
     }
     function instructorAreaLabel(instructor) {
-        const labels = instructorMapKeys(instructor).map((key) => areaLabels[key]);
+        const labels = instructorAreas(instructor).map((area) => area.name);
         return labels.length > 0 ? labels.join(", ") : "Shropshire";
     }
     function renderMissing() {
@@ -100,7 +105,7 @@
         const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
         const { data, error } = await client
             .from("instructors")
-            .select("name, map_keys, transmission, phone, bio, profile_bio, photo_url, slug")
+            .select("name, transmission, phone, bio, profile_bio, photo_url, slug, instructor_areas(area:areas(name, is_visible, sort_order))")
             .eq("slug", slug)
             .eq("active", true)
             .maybeSingle();

@@ -1,11 +1,5 @@
 "use strict";
 (function () {
-    const areaLabels = {
-        shrewsbury: "Shrewsbury",
-        telford: "Telford",
-        shawbury: "Shawbury",
-        boomerheath: "Boomerheath"
-    };
     function hasSupabaseConfig(config = window.KS_SUPABASE) {
         return Boolean(config) &&
             !config.url.includes("YOUR_PROJECT_REF") &&
@@ -63,7 +57,6 @@
         });
     }
     window.KS_SHARED = {
-        areaLabels,
         bindMobileNav,
         escapeHtml,
         hasSupabaseConfig,
