@@ -3,6 +3,11 @@
     const gallery = document.querySelector("#pass-gallery");
     const dealPreview = document.querySelector("#deal-preview");
     const dealList = document.querySelector("#deal-list");
+    const reviewCarousel = document.querySelector("#review-carousel");
+    const reviewCarouselStatus = document.querySelector("#review-carousel-status");
+    const reviewCarouselDots = document.querySelector("#review-carousel-dots");
+    const reviewCarouselPrev = document.querySelector("#review-carousel-prev");
+    const reviewCarouselNext = document.querySelector("#review-carousel-next");
     const instructorList = document.querySelector("#instructor-list");
     const selectedAreaTitle = document.querySelector("#selected-area-title");
     const instructorMatchMessage = document.querySelector("#instructor-match-message");
@@ -149,6 +154,132 @@
             });
         }
         alignHashTarget();
+    }
+    function reviewStars(rating) {
+        const safeRating = Math.max(0, Math.min(5, Number.parseInt(String(rating || 0), 10) || 0));
+        return `${"★".repeat(safeRating)}${"☆".repeat(5 - safeRating)}`;
+    }
+    function reviewCard(review, index) {
+        const rating = Math.max(0, Math.min(5, Number.parseInt(String(review.rating || 0), 10) || 0));
+        return `
+      <article class="flex min-h-[270px] min-w-[88%] snap-start flex-col justify-between rounded-md border border-ink/8 bg-white p-6 shadow-sm shadow-ink/5 transition sm:min-w-[48%] sm:p-7 lg:min-w-[32%]" data-review-slide="${index}">
+        <div>
+          <p class="text-sm font-black tracking-[.12em] text-signal" aria-label="${rating} out of 5 stars">${reviewStars(rating)}</p>
+          <blockquote class="mt-6 text-xl font-black leading-8 tracking-normal text-ink sm:text-2xl sm:leading-9">"${escapeHtml(review.review_text)}"</blockquote>
+        </div>
+        <div class="mt-8 flex items-center justify-between gap-4 border-t border-ink/8 pt-4">
+          <p class="text-sm font-black text-ink">${escapeHtml(review.reviewer_name)}</p>
+          <p class="text-xs font-bold text-ink/50">${rating}/5</p>
+        </div>
+      </article>
+    `;
+    }
+    function setReviewControlsVisible(visible) {
+        reviewCarouselPrev?.classList.toggle("hidden", !visible);
+        reviewCarouselNext?.classList.toggle("hidden", !visible);
+    }
+    function renderReviewState(kind, message) {
+        if (!reviewCarousel)
+            return;
+        const tone = kind === "error" ? "text-ink/60" : "text-ink/62";
+        reviewCarousel.innerHTML = `
+      <div class="w-full rounded-md border border-ink/8 bg-kerb/70 p-6 ${tone}">
+        <p class="text-base font-black text-ink">${escapeHtml(message.title)}</p>
+        <p class="mt-2 max-w-xl text-sm leading-6">${escapeHtml(message.body)}</p>
+      </div>
+    `;
+        if (reviewCarouselStatus)
+            reviewCarouselStatus.textContent = message.title;
+        if (reviewCarouselDots)
+            reviewCarouselDots.innerHTML = "";
+        setReviewControlsVisible(false);
+    }
+    function updateReviewDots() {
+        if (!reviewCarousel || !reviewCarouselDots)
+            return;
+        const slides = Array.from(reviewCarousel.querySelectorAll("[data-review-slide]"));
+        if (slides.length === 0)
+            return;
+        const activeIndex = slides.reduce((closestIndex, slide, index) => {
+            const currentDistance = Math.abs(slide.getBoundingClientRect().left - reviewCarousel.getBoundingClientRect().left);
+            const closestSlide = slides[closestIndex];
+            const closestDistance = Math.abs(closestSlide.getBoundingClientRect().left - reviewCarousel.getBoundingClientRect().left);
+            return currentDistance < closestDistance ? index : closestIndex;
+        }, 0);
+        Array.from(reviewCarouselDots.querySelectorAll("button")).forEach((dot, index) => {
+            const active = index === activeIndex;
+            dot.classList.toggle("bg-road", active);
+            dot.classList.toggle("bg-ink/18", !active);
+            dot.setAttribute("aria-current", active ? "true" : "false");
+        });
+    }
+    function bindReviewCarouselControls() {
+        if (!reviewCarousel)
+            return;
+        const scrollOneSlide = (direction) => {
+            const firstSlide = reviewCarousel.querySelector("[data-review-slide]");
+            const width = firstSlide ? firstSlide.getBoundingClientRect().width + 16 : reviewCarousel.clientWidth;
+            reviewCarousel.scrollBy({ left: direction * width, behavior: "smooth" });
+        };
+        reviewCarouselPrev?.addEventListener("click", () => scrollOneSlide(-1));
+        reviewCarouselNext?.addEventListener("click", () => scrollOneSlide(1));
+        reviewCarousel.addEventListener("scroll", () => {
+            window.requestAnimationFrame(updateReviewDots);
+        }, { passive: true });
+    }
+    function renderReviews(reviews) {
+        if (!reviewCarousel)
+            return;
+        if (!reviews || reviews.length === 0) {
+            renderReviewState("empty", {
+                title: "Learner reviews are coming soon.",
+                body: "Recent feedback will appear here once the team adds it."
+            });
+            return;
+        }
+        reviewCarousel.innerHTML = reviews.map(reviewCard).join("");
+        setReviewControlsVisible(reviews.length > 1);
+        if (reviewCarouselStatus) {
+            reviewCarouselStatus.textContent = `${reviews.length} learner review${reviews.length === 1 ? "" : "s"} loaded.`;
+        }
+        if (reviewCarouselDots) {
+            reviewCarouselDots.innerHTML = reviews.map((review, index) => `
+        <button class="h-2 w-2 rounded-full ${index === 0 ? "bg-road" : "bg-ink/18"} transition sm:h-2.5 sm:w-2.5" type="button" data-review-dot="${index}" aria-label="Show review ${index + 1}" aria-current="${index === 0 ? "true" : "false"}"></button>
+      `).join("");
+            reviewCarouselDots.querySelectorAll("[data-review-dot]").forEach((dot) => {
+                dot.addEventListener("click", () => {
+                    const slide = reviewCarousel.querySelector(`[data-review-slide="${dot.dataset.reviewDot}"]`);
+                    slide?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+                });
+            });
+        }
+    }
+    async function loadReviews(client) {
+        if (!reviewCarousel)
+            return;
+        if (!client) {
+            renderReviewState("empty", {
+                title: "Learner reviews are coming soon.",
+                body: "Recent feedback will appear here once the team adds it."
+            });
+            return;
+        }
+        const { data, error } = await client
+            .from("reviews")
+            .select("reviewer_name, rating, review_text, is_featured, created_at")
+            .eq("is_visible", true)
+            .order("is_featured", { ascending: false })
+            .order("rating", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(8);
+        if (error) {
+            renderReviewState("error", {
+                title: "Reviews are temporarily unavailable.",
+                body: "Call the office if you would like to hear from recent learners."
+            });
+            return;
+        }
+        renderReviews(data || []);
     }
     async function loadDeals(client) {
         if (!dealPreview && !dealList)
@@ -406,6 +537,7 @@
     async function loadPosts() {
         loadInstructors(null);
         loadDeals(null);
+        loadReviews(null);
         if (!hasSupabaseConfig()) {
             renderPassPlaceholder();
             alignHashTarget();
@@ -420,6 +552,7 @@
         const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
         loadInstructors(client);
         loadDeals(client);
+        loadReviews(client);
         if (!gallery)
             return;
         const { data, error } = await client
@@ -479,6 +612,7 @@
             });
         });
     }
+    bindReviewCarouselControls();
     loadPosts();
     window.addEventListener("hashchange", alignHashTarget);
 })();

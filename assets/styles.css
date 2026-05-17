@@ -28,6 +28,14 @@ body {
   background: #e7e1d3;
 }
 
+#review-carousel {
+  scrollbar-width: none;
+}
+
+#review-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 summary::-webkit-details-marker {
   display: none;
 }
@@ -99,6 +107,10 @@ summary::-webkit-details-marker {
   justify-content: center;
   transition: background-color 160ms ease, color 160ms ease;
   width: 44px;
+}
+
+.icon-action.hidden {
+  display: none;
 }
 
 .icon-action:hover {

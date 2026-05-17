@@ -31,6 +31,14 @@
     const dealValidUntil = document.querySelector("#deal-valid-until");
     const dealStatusPreview = document.querySelector("#deal-status-preview");
     const dealDatePickers = Array.from(document.querySelectorAll("[data-date-picker]"));
+    const reviewForm = document.querySelector("#review-form");
+    const reviewId = document.querySelector("#review-id");
+    const reviewFormTitle = document.querySelector("#review-form-title");
+    const reviewSubmit = document.querySelector("#review-submit");
+    const reviewCancelEdit = document.querySelector("#review-cancel-edit");
+    const reviewMessage = document.querySelector("#review-message");
+    const adminReviews = document.querySelector("#admin-reviews");
+    const refreshReviews = document.querySelector("#refresh-reviews");
     const instructorForm = document.querySelector("#instructor-form");
     const instructorId = document.querySelector("#instructor-id");
     const instructorCurrentPhotoPath = document.querySelector("#instructor-current-photo-path");
@@ -78,6 +86,7 @@
     };
     let cachedPosts = [];
     let cachedDeals = [];
+    let cachedReviews = [];
     let cachedInstructors = [];
     let cachedAdminUsers = [];
     let adminLogoutTimer = 0;
@@ -152,6 +161,7 @@
         startAdminAutoLogout(resetActivity);
         loadAdminPosts();
         loadAdminDeals();
+        loadAdminReviews();
         loadAdminInstructors();
         loadSiteSettings();
         loadAdminUsers();
@@ -399,6 +409,14 @@
         const message = String(error?.message || "");
         return message.includes("current_deals") || message.includes("schema cache") || message.includes("Could not find the table");
     }
+    function isMissingReviewsTable(error) {
+        const message = String(error?.message || "");
+        return message.includes("reviews") || message.includes("schema cache") || message.includes("Could not find the table");
+    }
+    function ratingStars(rating) {
+        const safeRating = Math.max(0, Math.min(5, Number.parseInt(String(rating || 0), 10) || 0));
+        return `${"★".repeat(safeRating)}${"☆".repeat(5 - safeRating)}`;
+    }
     function resetPostForm() {
         postForm.reset();
         postId.value = "";
@@ -426,6 +444,16 @@
         dealSubmit.textContent = "Save deal";
         dealCancelEdit.classList.add("hidden");
         updateDealStatusPreview();
+    }
+    function resetReviewForm() {
+        reviewForm.reset();
+        reviewId.value = "";
+        document.querySelector("#review-rating").value = "5";
+        document.querySelector("#review-visible").checked = true;
+        document.querySelector("#review-featured").checked = false;
+        reviewFormTitle.textContent = "Learner reviews";
+        reviewSubmit.textContent = "Save review";
+        reviewCancelEdit.classList.add("hidden");
     }
     function getInstructorMapKeys(instructor) {
         if (Array.isArray(instructor.map_keys) && instructor.map_keys.length > 0) {
@@ -584,6 +612,58 @@
             <div class="flex flex-wrap gap-2">
               <button class="edit-deal rounded-md bg-kerb px-4 py-2 text-sm font-bold text-road transition hover:bg-signal hover:text-ink" data-deal-id="${deal.id}" type="button">Edit</button>
               <button class="delete-deal rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50" data-deal-id="${deal.id}" type="button">Delete</button>
+            </div>
+          </div>
+        </article>
+      `;
+        }).join("");
+    }
+    async function loadAdminReviews() {
+        adminReviews.innerHTML = `<p class="text-sm text-ink/60">Loading reviews...</p>`;
+        const { data, error } = await client
+            .from("reviews")
+            .select("id, reviewer_name, rating, review_text, is_featured, is_visible, created_at, updated_at")
+            .order("is_featured", { ascending: false })
+            .order("rating", { ascending: false })
+            .order("created_at", { ascending: false });
+        if (error) {
+            cachedReviews = [];
+            const message = isMissingReviewsTable(error)
+                ? "Reviews storage is not installed yet. Apply the reviews migration or supabase/schema.sql, then refresh this page."
+                : "Could not load reviews. Confirm this user is in public.admin_users.";
+            adminReviews.innerHTML = `<p class="text-sm text-red-700">${escapeHtml(message)}</p>`;
+            return;
+        }
+        if (!data || data.length === 0) {
+            cachedReviews = [];
+            adminReviews.innerHTML = `<p class="text-sm text-ink/60">No reviews yet.</p>`;
+            return;
+        }
+        cachedReviews = data;
+        adminReviews.innerHTML = data.map((review) => {
+            const created = review.created_at
+                ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(review.created_at))
+                : "No date";
+            const visibility = review.is_visible ? "Visible" : "Hidden";
+            const featured = review.is_featured ? "Featured" : "Standard";
+            return `
+        <article class="rounded-md border border-ink/10 p-4">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-black">${escapeHtml(review.reviewer_name)}</h3>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(visibility)}</span>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(featured)}</span>
+              </div>
+              <p class="mt-2 text-sm font-black tracking-[.12em] text-signal" aria-label="${escapeHtml(`${review.rating} out of 5 stars`)}">${ratingStars(review.rating)}</p>
+              <p class="mt-1 text-xs font-bold text-leaf">Added ${created}</p>
+              <blockquote class="mt-3 max-w-3xl text-sm leading-6 text-ink/72">"${escapeHtml(review.review_text)}"</blockquote>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="edit-review rounded-md bg-kerb px-4 py-2 text-sm font-bold text-road transition hover:bg-signal hover:text-ink" data-review-id="${review.id}" type="button">Edit</button>
+              <button class="toggle-review-visible rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" data-review-id="${review.id}" type="button">${review.is_visible ? "Hide" : "Show"}</button>
+              <button class="toggle-review-featured rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" data-review-id="${review.id}" type="button">${review.is_featured ? "Unfeature" : "Feature"}</button>
+              <button class="delete-review rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50" data-review-id="${review.id}" type="button">Delete</button>
             </div>
           </div>
         </article>
@@ -773,6 +853,22 @@
         updateDealStatusPreview();
         dealForm.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    function editReview(id) {
+        const review = cachedReviews.find((item) => item.id === id);
+        if (!review)
+            return;
+        showAdminView("reviews");
+        reviewId.value = review.id;
+        document.querySelector("#reviewer-name").value = review.reviewer_name || "";
+        document.querySelector("#review-rating").value = String(review.rating ?? 5);
+        document.querySelector("#review-text").value = review.review_text || "";
+        document.querySelector("#review-visible").checked = Boolean(review.is_visible);
+        document.querySelector("#review-featured").checked = Boolean(review.is_featured);
+        reviewFormTitle.textContent = `Edit ${review.reviewer_name || "review"}`;
+        reviewSubmit.textContent = "Save review";
+        reviewCancelEdit.classList.remove("hidden");
+        reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     function editInstructor(id) {
         const instructor = cachedInstructors.find((item) => item.id === id);
         if (!instructor)
@@ -949,6 +1045,41 @@
         resetDealForm();
         setMessage(dealMessage, editingDealId ? "Deal updated." : "Deal created.", false);
         loadAdminDeals();
+    });
+    reviewForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setMessage(reviewMessage, "Saving review...", false);
+        const formData = new FormData(reviewForm);
+        const editingReviewId = String(formData.get("review-id")).trim();
+        const rating = Number.parseInt(String(formData.get("review-rating") || "5"), 10);
+        const reviewPayload = {
+            reviewer_name: String(formData.get("reviewer-name")).trim(),
+            rating: Number.isFinite(rating) ? rating : 5,
+            review_text: String(formData.get("review-text")).trim(),
+            is_visible: formData.get("review-visible") === "on",
+            is_featured: formData.get("review-featured") === "on"
+        };
+        if (!reviewPayload.reviewer_name || !reviewPayload.review_text) {
+            setMessage(reviewMessage, "Reviewer name and review text are required.", true);
+            return;
+        }
+        if (reviewPayload.rating < 0 || reviewPayload.rating > 5) {
+            setMessage(reviewMessage, "Rating must be between 0 and 5.", true);
+            return;
+        }
+        const { error } = editingReviewId
+            ? await client.from("reviews").update(reviewPayload).eq("id", editingReviewId)
+            : await client.from("reviews").insert(reviewPayload);
+        if (error) {
+            const message = isMissingReviewsTable(error)
+                ? "Reviews storage is not installed yet. Apply the reviews migration or supabase/schema.sql, then refresh this page."
+                : error.message;
+            setMessage(reviewMessage, message, true);
+            return;
+        }
+        resetReviewForm();
+        setMessage(reviewMessage, editingReviewId ? "Review updated." : "Review created.", false);
+        loadAdminReviews();
     });
     instructorForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -1182,6 +1313,65 @@
         setMessage(dealMessage, "Deal deleted.", false);
         loadAdminDeals();
     });
+    adminReviews.addEventListener("click", async (event) => {
+        const editButton = event.target.closest(".edit-review");
+        if (editButton) {
+            editReview(editButton.dataset.reviewId);
+            return;
+        }
+        const visibleButton = event.target.closest(".toggle-review-visible");
+        if (visibleButton) {
+            const review = cachedReviews.find((item) => item.id === visibleButton.dataset.reviewId);
+            if (!review)
+                return;
+            const { error } = await client
+                .from("reviews")
+                .update({ is_visible: !review.is_visible })
+                .eq("id", review.id);
+            if (error) {
+                setMessage(reviewMessage, error.message, true);
+                return;
+            }
+            setMessage(reviewMessage, review.is_visible ? "Review hidden." : "Review visible.", false);
+            loadAdminReviews();
+            return;
+        }
+        const featuredButton = event.target.closest(".toggle-review-featured");
+        if (featuredButton) {
+            const review = cachedReviews.find((item) => item.id === featuredButton.dataset.reviewId);
+            if (!review)
+                return;
+            const { error } = await client
+                .from("reviews")
+                .update({ is_featured: !review.is_featured })
+                .eq("id", review.id);
+            if (error) {
+                setMessage(reviewMessage, error.message, true);
+                return;
+            }
+            setMessage(reviewMessage, review.is_featured ? "Review removed from featured." : "Review featured.", false);
+            loadAdminReviews();
+            return;
+        }
+        const deleteButton = event.target.closest(".delete-review");
+        if (!deleteButton)
+            return;
+        if (!window.confirm("Delete this review?"))
+            return;
+        const { error } = await client
+            .from("reviews")
+            .delete()
+            .eq("id", deleteButton.dataset.reviewId);
+        if (error) {
+            setMessage(reviewMessage, error.message, true);
+            return;
+        }
+        if (reviewId.value === deleteButton.dataset.reviewId) {
+            resetReviewForm();
+        }
+        setMessage(reviewMessage, "Review deleted.", false);
+        loadAdminReviews();
+    });
     adminUsers.addEventListener("click", async (event) => {
         const editButton = event.target.closest(".edit-admin-user");
         if (editButton) {
@@ -1293,6 +1483,10 @@
         resetDealForm();
         setMessage(dealMessage, "", false);
     });
+    reviewCancelEdit.addEventListener("click", () => {
+        resetReviewForm();
+        setMessage(reviewMessage, "", false);
+    });
     instructorCancelEdit.addEventListener("click", () => {
         resetInstructorForm();
         setPanelOpen(instructorFormPanel, toggleInstructorForm, false, instructorListPanel);
@@ -1305,6 +1499,7 @@
     });
     refreshPosts.addEventListener("click", loadAdminPosts);
     refreshDeals.addEventListener("click", loadAdminDeals);
+    refreshReviews.addEventListener("click", loadAdminReviews);
     refreshInstructors.addEventListener("click", loadAdminInstructors);
     refreshAdminUsers.addEventListener("click", loadAdminUsers);
     toggleInstructorForm?.addEventListener("click", () => {
@@ -1324,6 +1519,7 @@
         }
     });
     updateDealStatusPreview();
+    resetReviewForm();
     showAdminView("passes");
     loadSession();
 })();

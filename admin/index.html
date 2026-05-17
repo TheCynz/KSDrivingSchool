@@ -26,7 +26,7 @@
       };
     </script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=compact-nav-mapkeys">
+    <link rel="stylesheet" href="../assets/styles.css?v=reviews-admin-2">
   </head>
   <body class="min-h-screen bg-kerb text-ink antialiased">
     <main class="mx-auto min-h-screen max-w-6xl px-5 py-5">
@@ -61,7 +61,7 @@
       </section>
 
       <section id="admin-panel" class="mt-6 hidden">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button">
             <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Passes</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Add, edit, publish, or delete pass gallery posts.</p>
@@ -69,6 +69,10 @@
           <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="deals" type="button">
             <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Deals</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Create learner offers shown on the home page and deals page.</p>
+          </button>
+          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="reviews" type="button">
+            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Reviews</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Manage homepage testimonials and featured reviews.</p>
           </button>
           <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="settings" type="button">
             <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Site settings</p>
@@ -269,6 +273,67 @@
           <div id="admin-deals" class="mt-5 grid gap-4"></div>
         </div>
 
+        <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="reviews">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Testimonials</p>
+              <h2 id="review-form-title" class="mt-2 text-3xl font-black tracking-normal">Learner reviews</h2>
+              <p class="mt-2 text-sm leading-6 text-ink/68">Visible reviews appear on the homepage carousel. Featured reviews are shown first.</p>
+            </div>
+          </div>
+
+          <form id="review-form" class="mt-8 grid gap-5">
+            <input id="review-id" name="review-id" type="hidden">
+            <div class="grid gap-5 sm:grid-cols-[1fr_180px]">
+              <div>
+                <label class="text-sm font-bold" for="reviewer-name">Reviewer name</label>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="reviewer-name" name="reviewer-name" type="text" maxlength="120" placeholder="e.g. Megan H" required>
+              </div>
+              <div>
+                <label class="text-sm font-bold" for="review-rating">Star rating</label>
+                <div class="relative mt-2">
+                  <select class="admin-select w-full rounded-md border border-ink/15 bg-white px-4 py-3 pr-11 font-bold text-ink shadow-sm outline-none transition focus:border-leaf focus:ring-2 focus:ring-leaf/25" id="review-rating" name="review-rating" required>
+                    <option value="5">5 stars</option>
+                    <option value="4">4 stars</option>
+                    <option value="3">3 stars</option>
+                    <option value="2">2 stars</option>
+                    <option value="1">1 star</option>
+                    <option value="0">0 stars</option>
+                  </select>
+                  <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-road">
+                    <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.58l3.3-3.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.42Z"/></svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-bold" for="review-text">Review text</label>
+              <textarea class="mt-2 min-h-36 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="review-text" name="review-text" maxlength="900" placeholder="Write the learner or parent review exactly as it should appear." required></textarea>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold">
+                <input id="review-visible" name="review-visible" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
+                Show on homepage
+              </label>
+              <label class="flex items-center gap-3 rounded-md border border-ink/10 bg-white px-4 py-3 text-sm font-bold">
+                <input id="review-featured" name="review-featured" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf">
+                Feature first
+              </label>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button id="review-submit" class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Save review</button>
+              <button id="review-cancel-edit" class="hidden rounded-md border border-ink/15 px-5 py-4 font-black text-ink transition hover:border-leaf hover:text-leaf" type="button">Cancel edit</button>
+            </div>
+            <p id="review-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
+          </form>
+
+          <div class="mt-8 flex items-center justify-between gap-4">
+            <h3 class="text-2xl font-black tracking-normal">Existing reviews</h3>
+            <button id="refresh-reviews" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+          </div>
+          <div id="admin-reviews" class="mt-5 grid gap-4"></div>
+        </div>
+
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="instructors">
           <div class="flex items-start justify-between gap-4">
             <div>
@@ -430,6 +495,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4"></script>
     <script src="../assets/supabase-config.js"></script>
-    <script src="admin.js?v=deals-schedule-calendar"></script>
+    <script src="admin.js?v=reviews-admin"></script>
   </body>
 </html>
