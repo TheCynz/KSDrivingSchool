@@ -25,26 +25,9 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preload" as="image" href="../assets/hero-blue-car.jpg" fetchpriority="high">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ink: "#17211d",
-              road: "#0b3a78",
-              signal: "#f6c445",
-              kerb: "#eef5fb",
-              leaf: "#1769aa"
-            },
-            fontFamily: {
-              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
-            }
-          }
-        }
-      };
-    </script>
+    <script src="../assets/theme.js"></script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=reviews-carousel-2">
+    <link rel="stylesheet" href="../assets/styles.css?v=reviews-carousel-three-up">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -135,7 +118,7 @@
         <div class="relative z-10 mx-auto grid min-w-0 max-w-6xl gap-5 px-4 pb-6 pt-4 sm:gap-8 sm:px-5 sm:pb-28 sm:pt-10 lg:min-h-[720px] lg:grid-cols-[1fr_380px] lg:items-center">
           <div class="order-2 max-w-3xl lg:order-1">
             <p class="mb-4 inline-flex rounded-md bg-white/12 px-3 py-2 text-sm font-bold text-signal ring-1 ring-white/20 sm:mb-5">Local driving lessons in Shropshire</p>
-            <h1 class="max-w-3xl text-3xl font-black leading-[1.06] tracking-normal sm:text-6xl lg:text-7xl">Driving instructors covering Shropshire.</h1>
+            <h1 class="max-w-3xl text-3xl font-black leading-[1.06] sm:text-6xl lg:text-7xl">Driving instructors covering Shropshire.</h1>
             <p class="mt-4 max-w-2xl text-base leading-7 text-white/88 sm:mt-5 sm:text-lg sm:leading-8">Patient manual and automatic instructors, local test-route practice, and clear booking by phone or message.</p>
             <div class="mt-5 grid gap-3 sm:mt-6 sm:flex sm:flex-wrap">
               <a class="inline-flex items-center justify-center rounded-md bg-signal px-6 py-4 text-base font-black text-ink shadow-lg shadow-black/20 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white" data-phone-link data-phone-label="Call 0333 7720143" href="tel:+443337720143">Call 0333 7720143</a>
@@ -148,7 +131,7 @@
             </div>
           </div>
           <aside class="mobile-safe-panel order-1 min-w-0 rounded-md bg-white p-4 text-ink shadow-2xl shadow-black/25 sm:p-5 lg:order-2">
-            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Start here</p>
+            <p class="text-sm font-black uppercase text-leaf">Start here</p>
             <h2 class="mt-2 text-2xl font-black">Book lessons in minutes</h2>
             <form id="lesson-finder" class="mt-5 grid gap-4">
               <div>
@@ -195,8 +178,8 @@
         <div id="areas" class="section-anchor mx-auto max-w-6xl px-5">
           <div class="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
             <div class="max-w-2xl">
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Where can I find lessons?</p>
-              <h2 class="mt-3 text-3xl font-black tracking-normal sm:text-4xl">Driving instructors covering Shropshire.</h2>
+              <p class="text-sm font-black uppercase text-leaf">Where can I find lessons?</p>
+              <h2 class="mt-3 text-3xl font-black sm:text-4xl">Driving instructors covering Shropshire.</h2>
             </div>
             <p class="max-w-md text-sm leading-6 text-ink/70">Tap an area to see which instructors cover it, or use the postcode checker above to jump straight to local matches.</p>
           </div>
@@ -204,15 +187,42 @@
           <div class="mt-9 grid gap-6 sm:mt-12 lg:grid-cols-[1.1fr_.9fr]">
             <div class="rounded-md bg-white p-4 shadow-xl shadow-ink/8 sm:p-5">
               <div class="relative overflow-hidden rounded-md bg-[#d7e7f5]">
-                <svg class="h-auto w-full" viewBox="0 0 720 520" role="img" aria-label="Interactive Shropshire lesson coverage map">
-                  <rect width="720" height="520" fill="#d7e7f5"></rect>
-                  <path d="M116 83 C165 42 241 41 283 72 C316 96 338 89 377 73 C423 54 488 70 506 112 C518 141 544 142 585 163 C635 189 647 248 622 292 C601 327 610 367 579 402 C542 444 471 454 421 431 C379 411 350 425 306 457 C250 499 171 472 147 414 C132 377 99 361 78 322 C46 264 63 127 116 83Z" fill="#f8fbff" stroke="#82a8ca" stroke-width="3"></path>
-                  <path d="M189 90 C224 120 250 152 276 194 C302 235 339 250 385 253 C429 255 469 246 518 223 C553 207 582 207 612 223" fill="none" stroke="#9bbada" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 12"></path>
-                  <path d="M126 385 C171 351 226 333 283 320 C357 303 421 278 501 230" fill="none" stroke="#7fa7ca" stroke-width="8" stroke-linecap="round"></path>
-                  <path d="M253 108 C278 153 296 205 300 268 C305 332 333 383 382 432" fill="none" stroke="#7fa7ca" stroke-width="6" stroke-linecap="round"></path>
-                  <path d="M122 218 C176 216 229 225 282 247 C331 267 389 283 456 288 C507 292 550 310 590 342" fill="none" stroke="#b4cce1" stroke-width="4" stroke-linecap="round"></path>
-                  <text x="128" y="118" class="fill-road text-[14px] font-black opacity-70">North Shropshire</text>
-                  <text x="498" y="410" class="fill-road text-[14px] font-black opacity-70">East Shropshire</text>
+                <svg class="h-auto w-full" viewBox="0 0 1000 720" role="img" aria-label="Interactive Shropshire lesson coverage map">
+                  <defs>
+                    <linearGradient id="home-map-bg" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#edf4fc"></stop>
+                      <stop offset="100%" stop-color="#dfe9f5"></stop>
+                    </linearGradient>
+                    <filter id="home-map-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#2d4d78" flood-opacity="0.14"></feDropShadow>
+                    </filter>
+                  </defs>
+                  <rect width="1000" height="720" rx="34" fill="url(#home-map-bg)"></rect>
+                  <path d="M120 120 C170 70 245 65 298 102 C332 126 362 128 394 112 C436 90 475 88 514 118 C552 146 588 142 624 110 C675 66 758 70 808 120 C842 154 866 190 894 242 C922 295 920 358 896 420 C875 474 882 535 850 578 C812 626 742 628 680 606 C621 586 578 596 520 632 C463 666 381 672 312 642 C249 614 203 622 160 590 C118 560 103 512 120 466 C138 420 136 392 102 346 C67 298 70 183 120 120 Z" fill="#f7fbff" stroke="#86a8cc" stroke-width="5"></path>
+                  <path d="M255 165 C304 205 330 252 340 314 C349 374 330 448 278 520" fill="none" stroke="#c7dbf1" stroke-width="3" opacity=".8"></path>
+                  <path d="M548 180 C590 212 614 264 618 326 C624 398 646 446 714 520" fill="none" stroke="#c7dbf1" stroke-width="3" opacity=".8"></path>
+                  <path d="M96 198 C188 242 254 300 320 362 C366 405 418 430 486 430" fill="none" stroke="#6f94c9" stroke-width="11" stroke-linecap="round"></path>
+                  <path d="M540 430 C610 430 675 438 735 458" fill="none" stroke="#6f94c9" stroke-width="12" stroke-linecap="round"></path>
+                  <path d="M735 458 C795 478 850 505 930 536" fill="none" stroke="#4d82d0" stroke-width="11" stroke-linecap="round"></path>
+                  <path d="M500 64 C508 122 506 180 502 236 C497 296 494 350 500 396" fill="none" stroke="#7093c6" stroke-width="11" stroke-linecap="round"></path>
+                  <path d="M500 464 C500 528 502 586 524 666" fill="none" stroke="#7093c6" stroke-width="11" stroke-linecap="round"></path>
+                  <path d="M540 404 C580 338 634 308 682 234 C716 180 744 148 790 112" fill="none" stroke="#88a8d5" stroke-width="8" stroke-linecap="round"></path>
+                  <path d="M166 490 C232 446 292 444 344 470 C398 498 446 482 492 444" fill="none" stroke="#88a8d5" stroke-width="7" stroke-linecap="round"></path>
+                  <g filter="url(#home-map-shadow)">
+                    <circle cx="500" cy="430" r="66" fill="#27539d" opacity=".10"></circle>
+                    <circle cx="500" cy="430" r="42" fill="#27539d" opacity=".14"></circle>
+                    <path d="M470 390 A54 54 0 1 1 452 454" fill="none" stroke="#7ea3d3" stroke-width="10" stroke-linecap="round"></path>
+                    <circle cx="500" cy="430" r="40" fill="#f7fbff"></circle>
+                  </g>
+                  <g font-family="Inter, Arial, sans-serif" font-weight="800" font-size="20">
+                    <g transform="translate(480 122)"><rect width="52" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="48" height="30" rx="6" fill="#7ba946"></rect><text x="26" y="23" text-anchor="middle" fill="#ffffff">A49</text></g>
+                    <g transform="translate(452 610)"><rect width="52" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="48" height="30" rx="6" fill="#7ba946"></rect><text x="26" y="23" text-anchor="middle" fill="#ffffff">A49</text></g>
+                    <g transform="translate(138 244)"><rect width="46" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="42" height="30" rx="6" fill="#7ba946"></rect><text x="23" y="23" text-anchor="middle" fill="#ffffff">A5</text></g>
+                    <g transform="translate(610 420)"><rect width="46" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="42" height="30" rx="6" fill="#7ba946"></rect><text x="23" y="23" text-anchor="middle" fill="#ffffff">A5</text></g>
+                    <g transform="translate(676 190)"><rect width="56" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="52" height="30" rx="6" fill="#7ba946"></rect><text x="28" y="23" text-anchor="middle" fill="#ffffff">A53</text></g>
+                    <g transform="translate(250 486)"><rect width="64" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="60" height="30" rx="6" fill="#7ba946"></rect><text x="32" y="23" text-anchor="middle" fill="#ffffff">A458</text></g>
+                    <g transform="translate(812 490)"><rect width="72" height="38" rx="10" fill="#2663c5"></rect><rect x="2" y="2" width="68" height="34" rx="8" fill="#3273dc"></rect><text x="36" y="25" text-anchor="middle" fill="#ffffff">M54</text></g>
+                  </g>
                   <g id="coverage-map-markers"></g>
                 </svg>
               </div>
@@ -222,7 +232,7 @@
             </div>
 
             <div id="instructors" class="section-anchor rounded-md bg-white p-5 shadow-xl shadow-ink/8 sm:p-6">
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Instructors</p>
+              <p class="text-sm font-black uppercase text-leaf">Instructors</p>
               <h3 id="selected-area-title" class="mt-2 text-2xl font-black">Local instructors</h3>
               <p id="instructor-match-message" class="mt-2 hidden text-sm font-bold text-road"></p>
               <div id="instructor-list" class="mt-5 grid gap-4">
@@ -231,15 +241,24 @@
             </div>
           </div>
 
-          <section data-home-deals class="mt-8 hidden rounded-md bg-white p-4 shadow-sm ring-1 ring-ink/8 sm:p-5">
-            <div class="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-center">
-              <div>
-                <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Current deals</p>
-                <h2 class="mt-3 text-3xl font-black tracking-normal sm:text-4xl">Learner offers from KS Driving School.</h2>
-                <p class="mt-4 max-w-2xl text-base leading-7 text-ink/72">Driving lesson offers for learners booking manual or automatic lessons.</p>
+          <section data-home-deals class="current-offers-panel mt-8 hidden overflow-hidden rounded-md border border-ink/10 bg-white p-4 text-ink shadow-xl shadow-ink/8 sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="max-w-xl">
+                <p class="text-sm font-black uppercase text-leaf">Current offers</p>
+                <h2 class="mt-2 text-3xl font-black sm:text-4xl">Lesson offers ready to book.</h2>
+                <p class="mt-3 text-sm leading-6 text-ink/68">Tap an offer to open an email with the deal details already filled in.</p>
               </div>
-              <div id="deal-preview"></div>
+              <div class="hidden gap-2 sm:flex">
+                <button id="deal-carousel-prev" class="icon-action" type="button" aria-label="Previous offer">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <button id="deal-carousel-next" class="icon-action" type="button" aria-label="Next offer">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+              </div>
             </div>
+            <div id="deal-preview" class="deal-carousel mt-6 grid grid-cols-[minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] items-stretch gap-2 sm:gap-4 lg:gap-5" aria-label="Current offers carousel"></div>
+            <div id="deal-carousel-dots" class="mt-5 flex justify-center gap-2" aria-label="Current offer carousel position"></div>
           </section>
 
           <details id="services" class="section-anchor mt-8 rounded-md bg-white p-4 shadow-sm ring-1 ring-ink/8 sm:p-5">
@@ -250,8 +269,8 @@
             <div class="mt-6 border-t border-ink/10 pt-6">
               <div class="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-start">
                 <div>
-                  <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Lesson options</p>
-                  <h3 class="mt-3 text-2xl font-black tracking-normal sm:text-3xl">Everything needed to become a safer driver.</h3>
+                  <p class="text-sm font-black uppercase text-leaf">Lesson options</p>
+                  <h3 class="mt-3 text-2xl font-black sm:text-3xl">Everything needed to become a safer driver.</h3>
                   <p class="mt-3 leading-7 text-ink/72">Choose the right instructor and transmission for your area, then build confidence with local routes, manoeuvres, test preparation, and regular lesson momentum.</p>
                 </div>
                 <div class="rounded-md bg-kerb p-5">
@@ -283,8 +302,8 @@
         <div id="reviews" class="section-anchor mx-auto max-w-6xl px-5">
           <div class="flex items-end justify-between gap-5">
             <div class="max-w-xl">
-              <p class="text-xs font-black uppercase tracking-[.18em] text-leaf sm:text-sm">Learner reviews</p>
-              <h2 class="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-4xl">What learners say.</h2>
+              <p class="text-xs font-black uppercase text-leaf sm:text-sm">Learner reviews</p>
+              <h2 class="mt-3 text-3xl font-black leading-tight sm:text-4xl">What learners say.</h2>
             </div>
             <div class="hidden gap-2 sm:flex">
               <button id="review-carousel-prev" class="icon-action" type="button" aria-label="Previous review">
@@ -296,24 +315,33 @@
             </div>
           </div>
           <div id="review-carousel-status" class="sr-only" role="status">Loading reviews.</div>
-          <div id="review-carousel" class="-mx-5 mt-7 flex snap-x gap-3 overflow-x-auto scroll-smooth px-5 pb-4 sm:mx-0 sm:mt-10 sm:gap-4 sm:px-0" aria-label="Learner reviews carousel">
-            <article class="min-w-[88%] snap-start rounded-md border border-ink/8 bg-kerb p-6 sm:min-w-[48%] lg:min-w-[32%]">
-              <div class="h-4 w-20 rounded bg-white"></div>
+          <div id="review-carousel" class="review-carousel mt-7 grid grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)_minmax(0,1fr)] items-stretch gap-2 pb-7 pt-3 sm:mt-10 sm:gap-4 lg:gap-6" aria-label="Learner reviews carousel">
+            <article class="review-slide rounded-md border border-ink/8 bg-kerb p-4 sm:p-6">
+              <div class="h-4 w-20 rounded bg-white/85"></div>
               <div class="mt-6 space-y-3">
-                <div class="h-3 rounded bg-white"></div>
-                <div class="h-3 rounded bg-white"></div>
-                <div class="h-3 w-4/5 rounded bg-white"></div>
+                <div class="h-3 rounded bg-white/85"></div>
+                <div class="h-3 rounded bg-white/85"></div>
+                <div class="h-3 w-4/5 rounded bg-white/85"></div>
               </div>
-              <div class="mt-8 h-4 w-28 rounded bg-white"></div>
+              <div class="mt-8 h-4 w-28 rounded bg-white/85"></div>
             </article>
-            <article class="min-w-[88%] snap-start rounded-md border border-ink/8 bg-kerb p-6 sm:min-w-[48%] lg:min-w-[32%]">
-              <div class="h-4 w-20 rounded bg-white"></div>
+            <article class="review-slide review-slide-active rounded-md border border-ink/8 bg-kerb p-4 sm:p-6">
+              <div class="h-4 w-20 rounded bg-white/85"></div>
               <div class="mt-6 space-y-3">
-                <div class="h-3 rounded bg-white"></div>
-                <div class="h-3 rounded bg-white"></div>
-                <div class="h-3 w-4/5 rounded bg-white"></div>
+                <div class="h-3 rounded bg-white/85"></div>
+                <div class="h-3 rounded bg-white/85"></div>
+                <div class="h-3 w-4/5 rounded bg-white/85"></div>
               </div>
-              <div class="mt-8 h-4 w-28 rounded bg-white"></div>
+              <div class="mt-8 h-4 w-28 rounded bg-white/85"></div>
+            </article>
+            <article class="review-slide rounded-md border border-ink/8 bg-kerb p-4 sm:p-6">
+              <div class="h-4 w-20 rounded bg-white/85"></div>
+              <div class="mt-6 space-y-3">
+                <div class="h-3 rounded bg-white/85"></div>
+                <div class="h-3 rounded bg-white/85"></div>
+                <div class="h-3 w-4/5 rounded bg-white/85"></div>
+              </div>
+              <div class="mt-8 h-4 w-28 rounded bg-white/85"></div>
             </article>
           </div>
           <div id="review-carousel-dots" class="mt-1 flex justify-center gap-2 sm:mt-2" aria-label="Review carousel position"></div>
@@ -324,8 +352,8 @@
         <div id="passes" class="section-anchor mx-auto max-w-6xl px-5">
           <div class="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Pass gallery</p>
-              <h2 class="mt-3 text-3xl font-black tracking-normal sm:text-4xl">Recent student passes.</h2>
+              <p class="text-sm font-black uppercase text-leaf">Pass gallery</p>
+              <h2 class="mt-3 text-3xl font-black sm:text-4xl">Recent student passes.</h2>
             </div>
             <p class="max-w-md text-sm leading-6 text-ink/70">Every pass is a serious milestone. The gallery updates when the instructor adds a new result from the private admin area.</p>
           </div>
@@ -364,6 +392,6 @@
     <script src="../assets/supabase-config.js"></script>
     <script src="../assets/shared.js?v=architecture-cleanup"></script>
     <script src="../assets/site.js?v=footer-icons"></script>
-    <script src="home.js?v=reviews-carousel-premium"></script>
+    <script src="home.js?v=reviews-carousel-three-up"></script>
   </body>
 </html>

@@ -3,6 +3,10 @@
     const shared = window.KS_SHARED;
     const loginForm = document.querySelector("#login-form");
     const loginMessage = document.querySelector("#login-message");
+    const passwordResetForm = document.querySelector("#password-reset-form");
+    const newPassword = document.querySelector("#new-password");
+    const confirmPassword = document.querySelector("#confirm-password");
+    const passwordResetMessage = document.querySelector("#password-reset-message");
     const sessionPanel = document.querySelector("#session-panel");
     const sessionEmail = document.querySelector("#session-email");
     const sessionTimeoutMessage = document.querySelector("#session-timeout-message");
@@ -31,7 +35,7 @@
     const dealValidFrom = document.querySelector("#deal-valid-from");
     const dealValidUntil = document.querySelector("#deal-valid-until");
     const dealStatusPreview = document.querySelector("#deal-status-preview");
-    const dealDatePickers = Array.from(document.querySelectorAll("[data-date-picker]"));
+    const datePickers = Array.from(document.querySelectorAll("[data-date-picker]"));
     const reviewForm = document.querySelector("#review-form");
     const reviewId = document.querySelector("#review-id");
     const reviewFormTitle = document.querySelector("#review-form-title");
@@ -61,6 +65,11 @@
     const areaMessage = document.querySelector("#area-message");
     const adminAreas = document.querySelector("#admin-areas");
     const refreshAreas = document.querySelector("#refresh-areas");
+    const toggleAreaForm = document.querySelector("#toggle-area-form");
+    const areaFormPanel = document.querySelector("#area-form-panel");
+    const areaListPanel = document.querySelector("#area-list-panel");
+    const areaMapPicker = document.querySelector("#area-map-picker");
+    const areaMapPickerStatus = document.querySelector("#area-map-picker-status");
     const settingsForm = document.querySelector("#settings-form");
     const settingsMessage = document.querySelector("#settings-message");
     const adminUserForm = document.querySelector("#admin-user-form");
@@ -81,6 +90,11 @@
     const adminUserListPanel = document.querySelector("#admin-user-list-panel");
     const adminNavCards = Array.from(document.querySelectorAll(".admin-nav-card"));
     const adminViews = Array.from(document.querySelectorAll(".admin-view"));
+    const adminConfigNav = document.querySelector("#admin-config-nav");
+    const areaMapWidth = 1000;
+    const areaMapHeight = 720;
+    const areaMapCenterX = areaMapWidth / 2;
+    const areaMapCenterY = 430;
     const maxPhotoSize = 5 * 1024 * 1024;
     const allowedPhotoTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
     const passwordRequirements = "Minimum 12 characters with lowercase, uppercase, digit, and symbol.";
@@ -93,6 +107,7 @@
     let cachedInstructors = [];
     let cachedAreas = [];
     let cachedAdminUsers = [];
+    let dealsSupportFeatured = true;
     let adminLogoutTimer = 0;
     let adminWarningTimer = 0;
     let adminIdleWarningShown = false;
@@ -108,9 +123,6 @@
         email: "ksdrivingschool66@gmail.com",
         facebook_url: "https://www.facebook.com/drivinglessonsshrewsbury/"
     };
-    if (passedAt) {
-        passedAt.valueAsDate = new Date();
-    }
     function hasSupabaseConfig() {
         return shared.hasSupabaseConfig();
     }
@@ -134,6 +146,10 @@
             card.classList.toggle("ring-1", !active);
             card.classList.toggle("ring-ink/8", !active);
         });
+        const activeCard = adminNavCards.find((card) => card.dataset.adminView === viewName);
+        if (adminConfigNav && activeCard && adminConfigNav.contains(activeCard)) {
+            adminConfigNav.open = true;
+        }
     }
     function setPanelOpen(panel, button, open, listPanel) {
         if (!panel || !button)
@@ -152,6 +168,7 @@
     }
     function setAuthenticated(user, resetActivity = false) {
         loginForm.classList.add("hidden");
+        passwordResetForm.classList.add("hidden");
         sessionPanel.classList.remove("hidden");
         sessionPanel.classList.add("flex", "flex-col", "gap-3", "sm:flex-row", "sm:items-center", "sm:justify-between");
         adminPanel.classList.remove("hidden");
@@ -172,10 +189,26 @@
     function setSignedOut() {
         stopAdminAutoLogout();
         loginForm.classList.remove("hidden");
+        passwordResetForm.classList.add("hidden");
         sessionPanel.classList.remove("flex", "flex-col", "gap-3", "sm:flex-row", "sm:items-center", "sm:justify-between");
         sessionPanel.classList.add("hidden");
         adminPanel.classList.add("hidden");
         sessionEmail.textContent = "";
+    }
+    function isPasswordRecoveryRoute() {
+        return window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery");
+    }
+    function setPasswordRecoveryMode(user) {
+        stopAdminAutoLogout();
+        loginForm.classList.add("hidden");
+        passwordResetForm.classList.remove("hidden");
+        sessionPanel.classList.add("hidden");
+        sessionPanel.classList.remove("flex", "flex-col", "gap-3", "sm:flex-row", "sm:items-center", "sm:justify-between");
+        adminPanel.classList.add("hidden");
+        sessionEmail.textContent = "";
+        newPassword.value = "";
+        confirmPassword.value = "";
+        setMessage(passwordResetMessage, `Set a new password for ${user.email || "this admin account"}.`, false);
     }
     function stopAdminAutoLogout() {
         window.clearTimeout(adminLogoutTimer);
@@ -307,11 +340,12 @@
         input.value = value || "";
         const picker = document.querySelector(`[data-date-input="${inputId}"]`);
         const label = picker?.querySelector("[data-date-label]");
-        const emptyLabel = inputId === "deal-valid-from" ? "Start immediately" : "No end date";
+        const emptyLabel = picker?.dataset.emptyLabel || (inputId === "deal-valid-from" ? "Start immediately" : "No end date");
         if (label)
             label.textContent = formatDateLabel(input.value, emptyLabel);
         renderDatePicker(picker);
-        updateDealStatusPreview();
+        if (inputId.startsWith("deal-"))
+            updateDealStatusPreview();
     }
     function datePickerMonth(picker) {
         const input = document.querySelector(`#${picker.dataset.dateInput}`);
@@ -350,6 +384,7 @@
         const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
         const selected = input.value;
         const today = todayIso();
+        const maxDate = picker.dataset.dateMax === "today" ? today : "";
         const offset = (monthStart.getDay() + 6) % 7;
         const cells = [];
         monthLabel.textContent = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(monthStart);
@@ -360,8 +395,9 @@
             const value = isoDate(new Date(monthStart.getFullYear(), monthStart.getMonth(), day));
             const active = value === selected;
             const isToday = value === today;
+            const disabled = maxDate && value > maxDate;
             cells.push(`
-        <button class="h-10 rounded-md text-sm font-black transition ${active ? "bg-road text-white shadow-sm" : "bg-kerb text-ink hover:bg-signal"} ${isToday && !active ? "ring-2 ring-leaf/40" : ""}" data-date-day="${value}" type="button" aria-pressed="${active}">
+        <button class="h-10 rounded-md text-sm font-black transition ${active ? "bg-road text-white shadow-sm" : "bg-kerb text-ink hover:bg-signal"} ${isToday && !active ? "ring-2 ring-leaf/40" : ""} ${disabled ? "cursor-not-allowed opacity-35 hover:bg-kerb" : ""}" data-date-day="${value}" type="button" aria-pressed="${active}" ${disabled ? "disabled" : ""}>
           ${day}
         </button>
       `);
@@ -412,6 +448,10 @@
         const message = String(error?.message || "");
         return message.includes("current_deals") || message.includes("schema cache") || message.includes("Could not find the table");
     }
+    function isMissingDealFeaturedColumn(error) {
+        const message = String(error?.message || "");
+        return message.includes("is_featured") || message.includes("schema cache");
+    }
     function isMissingReviewsTable(error) {
         const message = String(error?.message || "");
         return message.includes("reviews") || message.includes("schema cache") || message.includes("Could not find the table");
@@ -424,7 +464,7 @@
         postForm.reset();
         postId.value = "";
         postImagePath.value = "";
-        passedAt.valueAsDate = new Date();
+        setDateValue("passed-at", todayIso());
         document.querySelector("#caption").value = "Student passed with no faults.";
         document.querySelector("#review").value = "";
         document.querySelector("#published").checked = true;
@@ -439,7 +479,7 @@
         dealId.value = "";
         document.querySelector("#deal-type").value = "pupil";
         document.querySelector("#deal-cta-label").value = "Ask about this deal";
-        document.querySelector("#deal-sort-order").value = "100";
+        document.querySelector("#deal-sort-order").value = "1";
         setDateValue("deal-valid-from", "");
         setDateValue("deal-valid-until", "");
         document.querySelector("#deal-published").checked = true;
@@ -473,11 +513,8 @@
         return String(areaA.name || "").localeCompare(String(areaB.name || ""), "en-GB");
     }
     function instructorAreas(instructor) {
-        return Array.isArray(instructor.instructor_areas)
-            ? instructor.instructor_areas
-                .map((row) => row.area)
-                .filter(Boolean)
-                .sort(sortAreas)
+        return Array.isArray(instructor.areas)
+            ? instructor.areas.filter(Boolean).sort(sortAreas)
             : [];
     }
     function getInstructorAreaIds(instructor) {
@@ -505,6 +542,91 @@
             .split(",")
             .map((part) => part.trim().toLowerCase())
             .filter(Boolean);
+    }
+    function clampNumber(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+    function areaMapInputs() {
+        return {
+            x: document.querySelector("#area-map-x"),
+            y: document.querySelector("#area-map-y")
+        };
+    }
+    function areaStoredPointToSvg(mapX, mapY) {
+        const storedX = Number(mapX);
+        const storedY = Number(mapY);
+        if (!Number.isFinite(storedX) || !Number.isFinite(storedY))
+            return { x: areaMapCenterX, y: areaMapCenterY };
+        if (storedX === 0 && storedY === 0)
+            return { x: areaMapCenterX, y: areaMapCenterY };
+        if (storedX >= 0 && storedX <= 100 && storedY >= 0 && storedY <= 100) {
+            return { x: (storedX / 100) * areaMapWidth, y: (storedY / 100) * areaMapHeight };
+        }
+        if (storedX < 0 || storedY < 0) {
+            return { x: areaMapCenterX + storedX, y: areaMapCenterY + storedY };
+        }
+        return { x: storedX, y: storedY };
+    }
+    function setAreaMapSvgPosition(svgX, svgY) {
+        const safeSvgX = Math.round(clampNumber(Number(svgX) || areaMapCenterX, 0, areaMapWidth));
+        const safeSvgY = Math.round(clampNumber(Number(svgY) || areaMapCenterY, 0, areaMapHeight));
+        const { x, y } = areaMapInputs();
+        if (x)
+            x.value = String(Math.round((safeSvgX / areaMapWidth) * 10000) / 100);
+        if (y)
+            y.value = String(Math.round((safeSvgY / areaMapHeight) * 10000) / 100);
+        ["#area-map-picker-marker-halo", "#area-map-picker-marker", "#area-map-picker-marker-dot"].forEach((selector) => {
+            const marker = document.querySelector(selector);
+            marker?.setAttribute("cx", String(safeSvgX));
+            marker?.setAttribute("cy", String(safeSvgY));
+        });
+        if (areaMapPickerStatus) {
+            areaMapPickerStatus.textContent = safeSvgX === areaMapCenterX && safeSvgY === areaMapCenterY
+                ? "Marker is centred. Click the map, or use arrow keys, to place it where this area appears."
+                : "Marker position selected.";
+        }
+    }
+    function setAreaMapPosition(mapX, mapY) {
+        const point = areaStoredPointToSvg(mapX, mapY);
+        setAreaMapSvgPosition(point.x, point.y);
+    }
+    function chooseAreaMapPosition(event) {
+        if (!areaMapPicker)
+            return;
+        const svg = areaMapPicker.querySelector("svg");
+        if (!svg)
+            return;
+        const rect = svg.getBoundingClientRect();
+        const clientX = event.clientX ?? rect.left + rect.width / 2;
+        const clientY = event.clientY ?? rect.top + rect.height / 2;
+        const svgX = ((clientX - rect.left) / rect.width) * areaMapWidth;
+        const svgY = ((clientY - rect.top) / rect.height) * areaMapHeight;
+        setAreaMapSvgPosition(svgX, svgY);
+    }
+    function moveAreaMapPosition(event) {
+        const { x, y } = areaMapInputs();
+        const current = areaStoredPointToSvg(x?.value || 50, y?.value || 50);
+        const step = event.shiftKey ? 24 : 12;
+        if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            setAreaMapSvgPosition(current.x - step, current.y);
+        }
+        else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            setAreaMapSvgPosition(current.x + step, current.y);
+        }
+        else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setAreaMapSvgPosition(current.x, current.y - step);
+        }
+        else if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setAreaMapSvgPosition(current.x, current.y + step);
+        }
+        else if (event.key === "Home") {
+            event.preventDefault();
+            setAreaMapSvgPosition(areaMapCenterX, areaMapCenterY);
+        }
     }
     function renderAreaCheckboxes(selectedIds = []) {
         if (!mapKeys)
@@ -534,13 +656,12 @@
     function resetAreaForm() {
         areaForm.reset();
         areaId.value = "";
-        document.querySelector("#area-map-x").value = "360";
-        document.querySelector("#area-map-y").value = "260";
+        setAreaMapPosition(0, 0);
         document.querySelector("#area-sort-order").value = "100";
         document.querySelector("#area-visible").checked = true;
         document.querySelector("#area-primary").checked = false;
         areaFormTitle.textContent = "Lesson areas";
-        areaSubmit.textContent = "Save area";
+        areaSubmit.textContent = "Add area";
         areaCancelEdit.classList.add("hidden");
     }
     function resetAdminUserForm() {
@@ -548,10 +669,11 @@
         adminUserId.value = "";
         adminUserEmail.disabled = false;
         adminUserEmail.required = true;
-        adminUserPassword.required = true;
+        adminUserPassword.required = false;
+        adminUserPassword.value = "";
         adminUserActive.checked = true;
         adminUserRole.value = "admin";
-        adminUserPasswordHelp.textContent = `${passwordRequirements} Required when creating a new admin or resetting a password.`;
+        adminUserPasswordHelp.textContent = "New admins receive a Supabase email link to set their password. Existing admins can be sent a reset email from the admin list.";
         adminUserSubmit.textContent = "Create admin";
         adminUserCancelEdit.classList.add("hidden");
     }
@@ -565,7 +687,12 @@
     async function loadSession() {
         const { data } = await client.auth.getSession();
         if (data.session?.user) {
-            setAuthenticated(data.session.user);
+            if (isPasswordRecoveryRoute()) {
+                setPasswordRecoveryMode(data.session.user);
+            }
+            else {
+                setAuthenticated(data.session.user);
+            }
         }
         else {
             setSignedOut();
@@ -622,11 +749,22 @@
     }
     async function loadAdminDeals() {
         adminDeals.innerHTML = `<p class="text-sm text-ink/60">Loading deals...</p>`;
-        const { data, error } = await client
+        let { data, error } = await client
             .from("current_deals")
-            .select("id, deal_type, title, summary, details, cta_label, sort_order, published, valid_from, valid_until, created_at")
+            .select("id, deal_type, title, summary, details, cta_label, sort_order, is_featured, published, valid_from, valid_until, created_at")
+            .order("is_featured", { ascending: false })
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: false });
+        dealsSupportFeatured = !isMissingDealFeaturedColumn(error);
+        if (error && !dealsSupportFeatured) {
+            const fallback = await client
+                .from("current_deals")
+                .select("id, deal_type, title, summary, details, cta_label, sort_order, published, valid_from, valid_until, created_at")
+                .order("sort_order", { ascending: true })
+                .order("created_at", { ascending: false });
+            data = (fallback.data || []).map((deal) => ({ ...deal, is_featured: false }));
+            error = fallback.error;
+        }
         if (error) {
             cachedDeals = [];
             adminDeals.innerHTML = `<p class="text-sm text-ink/60">No active deals yet.</p>`;
@@ -640,6 +778,7 @@
         cachedDeals = data;
         adminDeals.innerHTML = data.map((deal) => {
             const status = dealStatus(deal);
+            const featured = deal.is_featured ? "Featured" : "Standard";
             const dealType = deal.deal_type === "pupil" ? "Pupil" : deal.deal_type || "Deal";
             const validFrom = deal.valid_from
                 ? `Starts ${formatDateLabel(deal.valid_from, "")}`
@@ -648,6 +787,9 @@
                 ? `Ends ${formatDateLabel(deal.valid_until, "")}`
                 : "No end date";
             const details = deal.details ? `<p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(deal.details)}</p>` : "";
+            const featuredButton = dealsSupportFeatured
+                ? `<button class="toggle-deal-featured rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf" data-deal-id="${deal.id}" type="button">${deal.is_featured ? "Unfeature" : "Feature"}</button>`
+                : "";
             return `
         <article class="rounded-md border border-ink/10 p-4">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -655,6 +797,7 @@
               <div class="flex flex-wrap items-center gap-2">
                 <h3 class="font-black">${escapeHtml(deal.title)}</h3>
                 <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(dealType)}</span>
+                <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(featured)}</span>
                 <span class="rounded-md border px-3 py-1 text-xs font-black ${status.className}">${escapeHtml(status.label)}</span>
                 <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">Order ${escapeHtml(deal.sort_order)}</span>
               </div>
@@ -666,6 +809,7 @@
             </div>
             <div class="flex flex-wrap gap-2">
               <button class="edit-deal rounded-md bg-kerb px-4 py-2 text-sm font-bold text-road transition hover:bg-signal hover:text-ink" data-deal-id="${deal.id}" type="button">Edit</button>
+              ${featuredButton}
               <button class="delete-deal rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50" data-deal-id="${deal.id}" type="button">Delete</button>
             </div>
           </div>
@@ -710,7 +854,7 @@
                 <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(visibility)}</span>
                 <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">${escapeHtml(featured)}</span>
               </div>
-              <p class="mt-2 text-sm font-black tracking-[.12em] text-signal" aria-label="${escapeHtml(`${review.rating} out of 5 stars`)}">${ratingStars(review.rating)}</p>
+              <p class="mt-2 text-sm font-black text-signal" aria-label="${escapeHtml(`${review.rating} out of 5 stars`)}">${ratingStars(review.rating)}</p>
               <p class="mt-1 text-xs font-bold text-leaf">Added ${created}</p>
               <blockquote class="mt-3 max-w-3xl text-sm leading-6 text-ink/72">"${escapeHtml(review.review_text)}"</blockquote>
             </div>
@@ -751,6 +895,7 @@
             const primary = area.is_primary ? "Primary" : "Standard";
             const prefixes = area.postcode_prefixes.length > 0 ? area.postcode_prefixes.join(", ") : "No prefixes";
             const terms = area.match_terms.length > 0 ? area.match_terms.join(", ") : "Name only";
+            const markerStatus = Number(area.map_x) === 0 && Number(area.map_y) === 0 ? "Centred marker" : "Custom marker position";
             return `
         <article class="rounded-md border border-ink/10 p-4">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -762,7 +907,7 @@
                 <span class="rounded bg-kerb px-2 py-1 text-xs font-bold">Order ${escapeHtml(area.sort_order)}</span>
               </div>
               <p class="mt-2 text-sm font-bold text-leaf">${escapeHtml(area.slug)}</p>
-              <p class="mt-2 text-sm leading-6 text-ink/70">Marker ${escapeHtml(area.map_x)}, ${escapeHtml(area.map_y)}</p>
+              <p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(markerStatus)}</p>
               <p class="mt-1 text-sm leading-6 text-ink/62">Prefixes: ${escapeHtml(prefixes)}</p>
               <p class="mt-1 text-sm leading-6 text-ink/62">Search terms: ${escapeHtml(terms)}</p>
             </div>
@@ -783,10 +928,10 @@
         }
         const { data, error } = await client
             .from("instructors")
-            .select("id, name, transmission, phone, bio, profile_bio, photo_path, photo_url, active, instructor_areas(area:areas(id, name, slug, sort_order))")
+            .select("id, name, transmission, phone, bio, profile_bio, photo_path, photo_url, active")
             .order("name", { ascending: true });
         if (error) {
-            adminInstructors.innerHTML = `<p class="text-sm text-red-700">Could not load instructors. Confirm the instructors table and RLS policies are installed.</p>`;
+            adminInstructors.innerHTML = `<p class="text-sm text-red-700">Could not load instructors. Confirm the instructors table and RLS policies are installed. ${escapeHtml(error.message || "")}</p>`;
             return;
         }
         if (!data || data.length === 0) {
@@ -794,8 +939,30 @@
             adminInstructors.innerHTML = `<p class="text-sm text-ink/60">No instructors yet.</p>`;
             return;
         }
-        cachedInstructors = data;
-        adminInstructors.innerHTML = data.map((instructor) => {
+        const instructorIds = data.map((instructor) => instructor.id).filter(Boolean);
+        const { data: assignments, error: assignmentError } = await client
+            .from("instructor_areas")
+            .select("instructor_id, area_id")
+            .in("instructor_id", instructorIds);
+        if (assignmentError) {
+            adminInstructors.innerHTML = `<p class="text-sm text-red-700">Could not load instructor area assignments. Confirm the instructor_areas table and RLS policies are installed. ${escapeHtml(assignmentError.message || "")}</p>`;
+            return;
+        }
+        const areasById = new Map(cachedAreas.map((area) => [area.id, area]));
+        const assignmentsByInstructor = new Map();
+        (assignments || []).forEach((assignment) => {
+            const area = areasById.get(assignment.area_id);
+            if (!area)
+                return;
+            const instructorAreas = assignmentsByInstructor.get(assignment.instructor_id) || [];
+            instructorAreas.push(area);
+            assignmentsByInstructor.set(assignment.instructor_id, instructorAreas);
+        });
+        cachedInstructors = data.map((instructor) => ({
+            ...instructor,
+            areas: assignmentsByInstructor.get(instructor.id) || []
+        }));
+        adminInstructors.innerHTML = cachedInstructors.map((instructor) => {
             const status = instructor.active ? "Visible" : "Hidden";
             const phone = instructor.phone ? `<p class="mt-1 text-sm text-ink/60">${escapeHtml(instructor.phone)}</p>` : "";
             const profileDescription = instructor.profile_bio ? `<p class="mt-2 text-sm leading-6 text-ink/70">${escapeHtml(instructor.profile_bio)}</p>` : "";
@@ -930,7 +1097,7 @@
         postId.value = post.id;
         postImagePath.value = post.image_path || "";
         document.querySelector("#student-name").value = post.student_name || "";
-        passedAt.value = dateInputValue(post.passed_at);
+        setDateValue("passed-at", dateInputValue(post.passed_at));
         document.querySelector("#caption").value = post.caption || "Student passed with no faults.";
         document.querySelector("#review").value = post.review || "";
         document.querySelector("#published").checked = Boolean(post.published);
@@ -984,11 +1151,11 @@
         if (!area)
             return;
         showAdminView("areas");
+        setPanelOpen(areaFormPanel, toggleAreaForm, true, areaListPanel);
         areaId.value = area.id;
         document.querySelector("#area-name").value = area.name || "";
         document.querySelector("#area-slug").value = area.slug || "";
-        document.querySelector("#area-map-x").value = String(Number(area.map_x) || 360);
-        document.querySelector("#area-map-y").value = String(Number(area.map_y) || 260);
+        setAreaMapPosition(Number.isFinite(Number(area.map_x)) ? Number(area.map_x) : 0, Number.isFinite(Number(area.map_y)) ? Number(area.map_y) : 0);
         document.querySelector("#area-sort-order").value = String(area.sort_order ?? 100);
         document.querySelector("#area-postcode-prefixes").value = area.postcode_prefixes.join(", ");
         document.querySelector("#area-match-terms").value = area.match_terms.join(", ");
@@ -1035,7 +1202,7 @@
         adminUserActive.checked = Boolean(admin.active);
         adminUserPassword.value = "";
         adminUserPassword.required = false;
-        adminUserPasswordHelp.textContent = `Leave blank to update access details only. Use Reset password to set a new temporary password. ${passwordRequirements}`;
+        adminUserPasswordHelp.textContent = "Save access details here. Use Reset password to send this admin a Supabase password reset email.";
         adminUserSubmit.textContent = "Save admin";
         adminUserCancelEdit.classList.remove("hidden");
         adminUserForm.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1055,6 +1222,29 @@
         setMessage(loginMessage, "", false);
         setAuthenticated(data.user, true);
     });
+    passwordResetForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const password = newPassword.value.trim();
+        const confirmation = confirmPassword.value.trim();
+        if (!passwordMeetsPolicy(password)) {
+            setMessage(passwordResetMessage, passwordRequirements, true);
+            return;
+        }
+        if (password !== confirmation) {
+            setMessage(passwordResetMessage, "Passwords do not match.", true);
+            return;
+        }
+        setMessage(passwordResetMessage, "Updating password...", false);
+        const { error } = await client.auth.updateUser({ password });
+        if (error) {
+            setMessage(passwordResetMessage, error.message, true);
+            return;
+        }
+        await client.auth.signOut();
+        window.history.replaceState(null, "", window.location.pathname);
+        setSignedOut();
+        setMessage(loginMessage, "Password updated. Sign in with your new password.", false);
+    });
     signOutButton.addEventListener("click", async () => {
         await client.auth.signOut();
         setSignedOut();
@@ -1065,6 +1255,7 @@
         setMessage(postMessage, "Saving post...", false);
         const formData = new FormData(postForm);
         const editingPostId = String(formData.get("post-id")).trim();
+        const passedAtValue = String(formData.get("passed-at") || "").trim();
         const photo = formData.get("photo");
         let filePath = String(formData.get("post-image-path")).trim() || null;
         let imageUrl = null;
@@ -1075,6 +1266,14 @@
         }
         if (photo && photo.size > 0 && !isValidPhoto(photo)) {
             setMessage(postMessage, "Photo must be a JPEG, PNG, or WebP under 5MB.", true);
+            return;
+        }
+        if (!passedAtValue) {
+            setMessage(postMessage, "Choose the pass date.", true);
+            return;
+        }
+        if (passedAtValue > todayIso()) {
+            setMessage(postMessage, "Pass date cannot be in the future.", true);
             return;
         }
         const { data: sessionData } = await client.auth.getSession();
@@ -1108,7 +1307,7 @@
             student_name: String(formData.get("student-name")).trim(),
             caption: String(formData.get("caption")).trim() || "Student passed with no faults.",
             review: String(formData.get("review")).trim() || null,
-            passed_at: formData.get("passed-at"),
+            passed_at: passedAtValue,
             published: formData.get("published") === "on"
         };
         if (filePath && imageUrl) {
@@ -1137,14 +1336,14 @@
         setMessage(dealMessage, "Saving deal...", false);
         const formData = new FormData(dealForm);
         const editingDealId = String(formData.get("deal-id")).trim();
-        const sortOrder = Number.parseInt(String(formData.get("deal-sort-order") || "100"), 10);
+        const sortOrder = Number.parseInt(String(formData.get("deal-sort-order") || "1"), 10);
         const dealPayload = {
             deal_type: String(formData.get("deal-type") || "pupil"),
             title: String(formData.get("deal-title")).trim(),
             summary: String(formData.get("deal-summary")).trim(),
             details: String(formData.get("deal-details")).trim() || null,
             cta_label: String(formData.get("deal-cta-label")).trim() || "Ask about this deal",
-            sort_order: Number.isFinite(sortOrder) ? sortOrder : 100,
+            sort_order: Number.isFinite(sortOrder) ? Math.max(1, sortOrder) : 1,
             valid_from: String(formData.get("deal-valid-from")).trim() || null,
             valid_until: String(formData.get("deal-valid-until")).trim() || null,
             published: formData.get("deal-published") === "on",
@@ -1227,8 +1426,8 @@
             setMessage(areaMessage, "Area name and slug are required.", true);
             return;
         }
-        if (!Number.isFinite(mapX) || mapX < 0 || mapX > 720 || !Number.isFinite(mapY) || mapY < 0 || mapY > 520) {
-            setMessage(areaMessage, "Map coordinates must sit inside the 720 by 520 map.", true);
+        if (!Number.isFinite(mapX) || mapX < 0 || mapX > 100 || !Number.isFinite(mapY) || mapY < 0 || mapY > 100) {
+            setMessage(areaMessage, "Choose a marker position inside the coverage map.", true);
             return;
         }
         const areaPayload = {
@@ -1250,6 +1449,7 @@
             return;
         }
         resetAreaForm();
+        setPanelOpen(areaFormPanel, toggleAreaForm, false, areaListPanel);
         setMessage(areaMessage, editingAreaId ? "Area updated." : "Area created.", false);
         await loadAdminAreas();
         loadAdminInstructors();
@@ -1397,11 +1597,6 @@
         setMessage(adminUserMessage, "Saving admin user...", false);
         const formData = new FormData(adminUserForm);
         const editingAdminId = String(formData.get("admin-user-id")).trim();
-        const password = String(formData.get("admin-user-password")).trim();
-        if ((!editingAdminId || password) && !passwordMeetsPolicy(password)) {
-            setMessage(adminUserMessage, passwordRequirements, true);
-            return;
-        }
         try {
             if (editingAdminId) {
                 await invokeAdminUsers({
@@ -1411,24 +1606,16 @@
                     role: formData.get("admin-user-role"),
                     active: formData.get("admin-user-active") === "on"
                 });
-                if (password) {
-                    await invokeAdminUsers({
-                        action: "reset-password",
-                        userId: editingAdminId,
-                        password
-                    });
-                }
-                setMessage(adminUserMessage, password ? "Admin updated and password reset." : "Admin updated.", false);
+                setMessage(adminUserMessage, "Admin updated.", false);
             }
             else {
                 await invokeAdminUsers({
                     action: "create",
                     email: formData.get("admin-user-email"),
                     fullName: formData.get("admin-user-name"),
-                    role: formData.get("admin-user-role"),
-                    password
+                    role: formData.get("admin-user-role")
                 });
-                setMessage(adminUserMessage, "Admin created. Share the temporary password privately.", false);
+                setMessage(adminUserMessage, "Admin created and password setup email sent.", false);
             }
         }
         catch (error) {
@@ -1502,6 +1689,7 @@
         }
         if (areaId.value === deleteButton.dataset.areaId) {
             resetAreaForm();
+            setPanelOpen(areaFormPanel, toggleAreaForm, false, areaListPanel);
         }
         setMessage(areaMessage, "Area deleted.", false);
         await loadAdminAreas();
@@ -1537,6 +1725,44 @@
         const editButton = event.target.closest(".edit-deal");
         if (editButton) {
             editDeal(editButton.dataset.dealId);
+            return;
+        }
+        const featuredButton = event.target.closest(".toggle-deal-featured");
+        if (featuredButton) {
+            const deal = cachedDeals.find((item) => item.id === featuredButton.dataset.dealId);
+            if (!deal)
+                return;
+            if (deal.is_featured) {
+                const { error } = await client
+                    .from("current_deals")
+                    .update({ is_featured: false })
+                    .eq("id", deal.id);
+                if (error) {
+                    setMessage(dealMessage, error.message, true);
+                    return;
+                }
+                setMessage(dealMessage, "Deal removed from featured.", false);
+                loadAdminDeals();
+                return;
+            }
+            const { error: clearError } = await client
+                .from("current_deals")
+                .update({ is_featured: false })
+                .eq("deal_type", deal.deal_type || "pupil");
+            if (clearError) {
+                setMessage(dealMessage, clearError.message, true);
+                return;
+            }
+            const { error: featureError } = await client
+                .from("current_deals")
+                .update({ is_featured: true })
+                .eq("id", deal.id);
+            if (featureError) {
+                setMessage(dealMessage, featureError.message, true);
+                return;
+            }
+            setMessage(dealMessage, "Deal featured. Other deals were unfeatured.", false);
+            loadAdminDeals();
             return;
         }
         const deleteButton = event.target.closest(".delete-deal");
@@ -1624,10 +1850,18 @@
         }
         const resetButton = event.target.closest(".reset-admin-password");
         if (resetButton) {
-            editAdminUser(resetButton.dataset.adminUserId);
-            adminUserPasswordHelp.textContent = `Enter a new temporary password, then save admin. ${passwordRequirements}`;
-            adminUserPassword.required = true;
-            adminUserPassword.focus();
+            setMessage(adminUserMessage, "Sending password reset email...", false);
+            try {
+                await invokeAdminUsers({
+                    action: "reset-password",
+                    userId: resetButton.dataset.adminUserId
+                });
+            }
+            catch (error) {
+                setMessage(adminUserMessage, error.message, true);
+                return;
+            }
+            setMessage(adminUserMessage, "Password reset email sent.", false);
             return;
         }
         const deleteButton = event.target.closest(".delete-admin-user");
@@ -1653,7 +1887,7 @@
             showAdminView(card.dataset.adminView);
         });
     });
-    dealDatePickers.forEach((picker) => {
+    datePickers.forEach((picker) => {
         setDatePickerMonth(picker, datePickerMonth(picker));
         renderDatePicker(picker);
         picker.addEventListener("click", (event) => {
@@ -1661,7 +1895,7 @@
             if (eventMatch(event, "[data-date-toggle]", picker)) {
                 const popover = picker.querySelector("[data-date-popover]");
                 const willOpen = popover?.classList.contains("hidden");
-                dealDatePickers.forEach((item) => setDatePickerOpen(item, false));
+                datePickers.forEach((item) => setDatePickerOpen(item, false));
                 setDatePickerOpen(picker, willOpen);
                 return;
             }
@@ -1698,13 +1932,13 @@
         });
     });
     document.addEventListener("click", (event) => {
-        if (dealDatePickers.some((picker) => picker.contains(event.target)))
+        if (datePickers.some((picker) => picker.contains(event.target)))
             return;
-        dealDatePickers.forEach((picker) => setDatePickerOpen(picker, false));
+        datePickers.forEach((picker) => setDatePickerOpen(picker, false));
     });
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
-            dealDatePickers.forEach((picker) => setDatePickerOpen(picker, false));
+            datePickers.forEach((picker) => setDatePickerOpen(picker, false));
         }
     });
     ["click", "keydown", "input", "pointerdown", "touchstart"].forEach((eventName) => {
@@ -1731,6 +1965,7 @@
     });
     areaCancelEdit.addEventListener("click", () => {
         resetAreaForm();
+        setPanelOpen(areaFormPanel, toggleAreaForm, false, areaListPanel);
         setMessage(areaMessage, "", false);
     });
     instructorCancelEdit.addEventListener("click", () => {
@@ -1749,6 +1984,16 @@
     refreshAreas.addEventListener("click", loadAdminAreas);
     refreshInstructors.addEventListener("click", loadAdminInstructors);
     refreshAdminUsers.addEventListener("click", loadAdminUsers);
+    areaMapPicker?.addEventListener("click", chooseAreaMapPosition);
+    areaMapPicker?.addEventListener("keydown", moveAreaMapPosition);
+    toggleAreaForm?.addEventListener("click", () => {
+        const open = areaFormPanel.classList.contains("hidden");
+        setPanelOpen(areaFormPanel, toggleAreaForm, open, areaListPanel);
+        if (open) {
+            resetAreaForm();
+            setMessage(areaMessage, "", false);
+        }
+    });
     toggleInstructorForm?.addEventListener("click", () => {
         const open = instructorFormPanel.classList.contains("hidden");
         setPanelOpen(instructorFormPanel, toggleInstructorForm, open, instructorListPanel);
@@ -1765,8 +2010,14 @@
             setMessage(adminUserMessage, "", false);
         }
     });
+    setDateValue("passed-at", todayIso());
     updateDealStatusPreview();
     resetReviewForm();
     showAdminView("passes");
+    client.auth.onAuthStateChange((event, session) => {
+        if (event === "PASSWORD_RECOVERY" && session?.user) {
+            setPasswordRecoveryMode(session.user);
+        }
+    });
     loadSession();
 })();

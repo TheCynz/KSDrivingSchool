@@ -20,26 +20,9 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ink: "#17211d",
-              road: "#0b3a78",
-              signal: "#f6c445",
-              kerb: "#eef5fb",
-              leaf: "#1769aa"
-            },
-            fontFamily: {
-              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
-            }
-          }
-        }
-      };
-    </script>
+    <script src="../assets/theme.js"></script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=compact-nav-mapkeys">
+    <link rel="stylesheet" href="../assets/styles.css?v=theme-20260517">
   </head>
   <body class="bg-kerb text-ink antialiased">
     <header class="border-b border-ink/10 bg-white shadow-sm">
@@ -63,8 +46,8 @@
     <main>
       <section class="bg-road px-5 py-16 text-white">
         <div class="mx-auto max-w-6xl">
-          <p class="text-sm font-black uppercase tracking-[.18em] text-signal">Instructor profile</p>
-          <h1 id="profile-heading" class="mt-3 max-w-4xl text-4xl font-black tracking-normal sm:text-6xl">Meet your local driving instructor.</h1>
+          <p class="text-sm font-black uppercase text-signal">Instructor profile</p>
+          <h1 id="profile-heading" class="mt-3 max-w-4xl text-4xl font-black sm:text-6xl">Meet your local driving instructor.</h1>
           <p id="profile-intro" class="mt-5 max-w-2xl text-lg leading-8 text-white/78">View coverage, lesson type, and booking details before you call.</p>
         </div>
       </section>

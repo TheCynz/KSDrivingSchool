@@ -10,23 +10,9 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ink: "#17211d",
-              road: "#0b3a78",
-              signal: "#f6c445",
-              kerb: "#eef5fb",
-              leaf: "#1769aa"
-            }
-          }
-        }
-      };
-    </script>
+    <script src="../assets/theme.js"></script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=reviews-admin-2">
+    <link rel="stylesheet" href="../assets/styles.css?v=theme-20260517">
   </head>
   <body class="min-h-screen bg-kerb text-ink antialiased">
     <main class="mx-auto min-h-screen max-w-6xl px-5 py-5">
@@ -37,7 +23,7 @@
           </a>
           <div id="session-panel" class="hidden min-w-0 rounded-md border border-ink/10 bg-kerb px-3 py-2">
             <div class="min-w-0">
-              <p class="text-xs font-bold uppercase tracking-[.16em] text-leaf">Signed in</p>
+              <p class="text-xs font-bold uppercase text-leaf">Signed in</p>
               <p id="session-email" class="truncate text-sm font-bold text-ink"></p>
               <p id="session-timeout-message" class="hidden text-xs font-bold text-red-700"></p>
             </div>
@@ -58,45 +44,64 @@
           <p id="login-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
         </form>
 
+        <form id="password-reset-form" class="mt-5 hidden grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <div>
+            <label class="text-sm font-bold text-ink" for="new-password">New password</label>
+            <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="new-password" name="new-password" type="password" autocomplete="new-password" minlength="12">
+          </div>
+          <div>
+            <label class="text-sm font-bold text-ink" for="confirm-password">Confirm password</label>
+            <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" minlength="12">
+          </div>
+          <button class="rounded-md bg-signal px-5 py-3 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Set password</button>
+          <p id="password-reset-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
+        </form>
+
       </section>
 
       <section id="admin-panel" class="mt-6 hidden">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-7">
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Passes</p>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button">
+            <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Passes</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Add, edit, publish, or delete pass gallery posts.</p>
           </button>
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="deals" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Deals</p>
-            <p class="mt-2 text-sm leading-6 text-ink/65">Create learner offers shown on the home page and deals page.</p>
-          </button>
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="reviews" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Reviews</p>
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="reviews" type="button">
+            <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Reviews</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Manage homepage testimonials and featured reviews.</p>
           </button>
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="settings" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Site settings</p>
-            <p class="mt-2 text-sm leading-6 text-ink/65">Update public phone, email, and Facebook links.</p>
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="deals" type="button">
+            <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Deals</p>
+            <p class="mt-2 text-sm leading-6 text-ink/65">Create learner offers shown on the home page and deals page.</p>
           </button>
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="instructors" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Instructors</p>
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="instructors" type="button">
+            <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Instructors</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Manage instructor profiles, photos, and areas.</p>
           </button>
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="areas" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Areas</p>
-            <p class="mt-2 text-sm leading-6 text-ink/65">Manage public coverage filters and map markers.</p>
-          </button>
-          <button class="admin-nav-card rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="admins" type="button">
-            <p class="text-lg font-black uppercase tracking-[.14em] text-leaf">Admins</p>
-            <p class="mt-2 text-sm leading-6 text-ink/65">Create admins, reset passwords, and remove access.</p>
-          </button>
         </div>
+
+        <details id="admin-config-nav" class="mt-4 rounded-md border border-ink/10 bg-white/70 p-4 shadow-sm shadow-ink/5">
+          <summary class="cursor-pointer text-sm font-black uppercase text-road">Site Configuration</summary>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="settings" type="button">
+              <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Site settings</p>
+              <p class="mt-2 text-sm leading-6 text-ink/65">Update public phone, email, and Facebook links.</p>
+            </button>
+            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="areas" type="button">
+              <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Areas</p>
+              <p class="mt-2 text-sm leading-6 text-ink/65">Manage public coverage filters and map markers.</p>
+            </button>
+            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="admins" type="button">
+              <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Admins</p>
+              <p class="mt-2 text-sm leading-6 text-ink/65">Create admins, reset passwords, and remove access.</p>
+            </button>
+          </div>
+        </details>
 
         <div class="admin-view mt-6 rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="passes">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Pass gallery</p>
-              <h2 id="post-form-title" class="mt-2 text-3xl font-black tracking-normal">Student passed with no faults</h2>
+              <p class="text-sm font-black uppercase text-leaf">Pass gallery</p>
+              <h2 id="post-form-title" class="mt-2 text-3xl font-black">Student passed with no faults</h2>
             </div>
           </div>
 
@@ -108,9 +113,27 @@
                 <label class="text-sm font-bold" for="student-name">Student name</label>
                 <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="student-name" name="student-name" type="text" maxlength="80" placeholder="e.g. Aisha" required>
               </div>
-              <div>
-                <label class="text-sm font-bold" for="passed-at">Pass date</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="passed-at" name="passed-at" type="date" required>
+              <div class="date-picker relative" data-date-picker data-date-input="passed-at" data-date-max="today" data-empty-label="Choose pass date">
+                <label class="text-sm font-bold" for="passed-at-button">Pass date</label>
+                <input id="passed-at" name="passed-at" type="hidden">
+                <button id="passed-at-button" class="mt-2 flex w-full items-center justify-between gap-3 rounded-md border border-ink/15 bg-white px-4 py-3 text-left font-bold text-ink shadow-sm transition hover:border-leaf focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/25" data-date-toggle type="button" aria-haspopup="dialog" aria-expanded="false">
+                  <span data-date-label>Choose pass date</span>
+                  <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-road" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path></svg>
+                </button>
+                <div class="absolute left-0 z-40 mt-2 hidden w-full min-w-80 rounded-md border border-ink/10 bg-white p-4 shadow-2xl shadow-ink/20" data-date-popover role="dialog" aria-label="Choose pass date">
+                  <div class="flex items-center justify-between gap-3">
+                    <button class="icon-action h-9 w-9" data-date-prev type="button" aria-label="Previous month"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+                    <p class="text-sm font-black text-road" data-date-month></p>
+                    <button class="icon-action h-9 w-9" data-date-next type="button" aria-label="Next month"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></button>
+                  </div>
+                  <div class="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-black uppercase text-ink/55" aria-hidden="true">
+                    <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                  </div>
+                  <div class="mt-2 grid grid-cols-7 gap-1" data-date-grid></div>
+                  <div class="mt-4">
+                    <button class="w-full rounded-md bg-signal px-3 py-2 text-sm font-black text-ink transition hover:bg-road hover:text-white" data-date-today type="button">Today</button>
+                  </div>
+                </div>
               </div>
             </div>
             <div>
@@ -128,7 +151,7 @@
             </div>
             <label class="flex items-center gap-3 text-sm font-bold">
               <input id="published" name="published" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
-              Publish immediately
+              Display on site
             </label>
             <div class="flex flex-col gap-3 sm:flex-row">
               <button id="post-submit" class="rounded-md bg-signal px-5 py-4 font-black text-ink transition hover:bg-road hover:text-white" type="submit">Upload post</button>
@@ -138,7 +161,7 @@
           </form>
 
           <div class="mt-8 flex items-center justify-between gap-4">
-            <h3 class="text-2xl font-black tracking-normal">Existing posts</h3>
+            <h3 class="text-2xl font-black">Existing posts</h3>
             <button id="refresh-posts" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
           <div id="admin-posts" class="mt-5 grid gap-4"></div>
@@ -146,14 +169,14 @@
 
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="settings">
           <div>
-            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Site settings</p>
-            <h2 class="mt-2 text-3xl font-black tracking-normal">Public contact details</h2>
+            <p class="text-sm font-black uppercase text-leaf">Site settings</p>
+            <h2 class="mt-2 text-3xl font-black">Public contact details</h2>
             <p class="mt-2 text-sm leading-6 text-ink/68">These values are shown on the public website. They are public information, not secrets.</p>
           </div>
 
           <form id="settings-form" class="mt-8 grid gap-5">
             <div>
-              <h3 class="text-xl font-black tracking-normal">Contact details</h3>
+              <h3 class="text-xl font-black">Contact details</h3>
             </div>
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
@@ -181,8 +204,8 @@
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="deals">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Current deals</p>
-              <h2 id="deal-form-title" class="mt-2 text-3xl font-black tracking-normal">Learner offer</h2>
+              <p class="text-sm font-black uppercase text-leaf">Current deals</p>
+              <h2 id="deal-form-title" class="mt-2 text-3xl font-black">Learner offer</h2>
               <p class="mt-2 text-sm leading-6 text-ink/68">Pupil deals are stored in the database and shown to learners on the home page and deals page when published.</p>
             </div>
           </div>
@@ -209,7 +232,7 @@
               </div>
               <div>
                 <label class="text-sm font-bold" for="deal-sort-order">Display order</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-sort-order" name="deal-sort-order" type="number" min="0" max="999" step="1" value="100" required>
+                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="deal-sort-order" name="deal-sort-order" type="number" min="1" max="999" step="1" value="1" required>
               </div>
               <div class="date-picker relative" data-date-picker data-date-input="deal-valid-from">
                 <label class="text-sm font-bold" for="deal-valid-from-button">Valid from</label>
@@ -271,7 +294,7 @@
           </form>
 
           <div class="mt-8 flex items-center justify-between gap-4">
-            <h3 class="text-2xl font-black tracking-normal">Existing deals</h3>
+            <h3 class="text-2xl font-black">Existing deals</h3>
             <button id="refresh-deals" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
           <div id="admin-deals" class="mt-5 grid gap-4"></div>
@@ -280,8 +303,8 @@
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="reviews">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Testimonials</p>
-              <h2 id="review-form-title" class="mt-2 text-3xl font-black tracking-normal">Learner reviews</h2>
+              <p class="text-sm font-black uppercase text-leaf">Testimonials</p>
+              <h2 id="review-form-title" class="mt-2 text-3xl font-black">Learner reviews</h2>
               <p class="mt-2 text-sm leading-6 text-ink/68">Visible reviews appear on the homepage carousel. Featured reviews are shown first.</p>
             </div>
           </div>
@@ -332,22 +355,34 @@
           </form>
 
           <div class="mt-8 flex items-center justify-between gap-4">
-            <h3 class="text-2xl font-black tracking-normal">Existing reviews</h3>
+            <h3 class="text-2xl font-black">Existing reviews</h3>
             <button id="refresh-reviews" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
           <div id="admin-reviews" class="mt-5 grid gap-4"></div>
         </div>
 
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="areas">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div class="flex items-start justify-between gap-4">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Coverage map</p>
-              <h2 id="area-form-title" class="mt-2 text-3xl font-black tracking-normal">Lesson areas</h2>
+              <p class="text-sm font-black uppercase text-leaf">Coverage map</p>
+              <h2 id="area-form-title" class="mt-2 text-3xl font-black">Lesson areas</h2>
               <p class="mt-2 text-sm leading-6 text-ink/68">Areas drive the homepage filters, instructor assignments, and map marker positions.</p>
             </div>
+            <button id="toggle-area-form" class="icon-action" type="button" aria-expanded="false" aria-controls="area-form-panel" aria-label="Add area">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
           </div>
 
-          <form id="area-form" class="mt-8 grid gap-5">
+          <div id="area-list-panel">
+            <div class="mt-8 flex items-center justify-between gap-4">
+              <h3 class="text-2xl font-black">Current areas</h3>
+              <button id="refresh-areas" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
+            </div>
+            <div id="admin-areas" class="mt-5 grid gap-4"></div>
+          </div>
+
+          <div id="area-form-panel" class="mt-8 hidden border-t border-ink/10 pt-8">
+          <form id="area-form" class="grid gap-5 rounded-md border border-ink/10 p-5">
             <input id="area-id" name="area-id" type="hidden">
             <div class="grid gap-5 sm:grid-cols-2">
               <div>
@@ -358,13 +393,53 @@
                 <label class="text-sm font-bold" for="area-slug">Slug</label>
                 <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="area-slug" name="area-slug" type="text" maxlength="120" placeholder="e.g. market-drayton" required>
               </div>
-              <div>
-                <label class="text-sm font-bold" for="area-map-x">Map X</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="area-map-x" name="area-map-x" type="number" min="0" max="720" step="1" value="360" required>
-              </div>
-              <div>
-                <label class="text-sm font-bold" for="area-map-y">Map Y</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="area-map-y" name="area-map-y" type="number" min="0" max="520" step="1" value="260" required>
+              <div class="sm:col-span-2">
+                <label class="text-sm font-bold" for="area-map-picker">Map marker</label>
+                <input id="area-map-x" name="area-map-x" type="hidden" value="50">
+                <input id="area-map-y" name="area-map-y" type="hidden" value="50">
+                <button id="area-map-picker" class="mt-2 block w-full overflow-hidden rounded-md border border-ink/15 bg-[#d7e7f5] text-left outline-none transition hover:border-leaf focus:ring-2 focus:ring-leaf" type="button" aria-label="Choose marker position on coverage map" aria-describedby="area-map-picker-status">
+                  <svg class="h-auto w-full" viewBox="0 0 1000 720" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="admin-map-bg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#edf4fc"></stop>
+                        <stop offset="100%" stop-color="#dfe9f5"></stop>
+                      </linearGradient>
+                      <filter id="admin-map-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#2d4d78" flood-opacity="0.14"></feDropShadow>
+                      </filter>
+                    </defs>
+                    <rect width="1000" height="720" rx="34" fill="url(#admin-map-bg)"></rect>
+                    <path d="M120 120 C170 70 245 65 298 102 C332 126 362 128 394 112 C436 90 475 88 514 118 C552 146 588 142 624 110 C675 66 758 70 808 120 C842 154 866 190 894 242 C922 295 920 358 896 420 C875 474 882 535 850 578 C812 626 742 628 680 606 C621 586 578 596 520 632 C463 666 381 672 312 642 C249 614 203 622 160 590 C118 560 103 512 120 466 C138 420 136 392 102 346 C67 298 70 183 120 120 Z" fill="#f7fbff" stroke="#86a8cc" stroke-width="5"></path>
+                    <path d="M255 165 C304 205 330 252 340 314 C349 374 330 448 278 520" fill="none" stroke="#c7dbf1" stroke-width="3" opacity=".8"></path>
+                    <path d="M548 180 C590 212 614 264 618 326 C624 398 646 446 714 520" fill="none" stroke="#c7dbf1" stroke-width="3" opacity=".8"></path>
+                    <path d="M96 198 C188 242 254 300 320 362 C366 405 418 430 486 430" fill="none" stroke="#6f94c9" stroke-width="11" stroke-linecap="round"></path>
+                    <path d="M540 430 C610 430 675 438 735 458" fill="none" stroke="#6f94c9" stroke-width="12" stroke-linecap="round"></path>
+                    <path d="M735 458 C795 478 850 505 930 536" fill="none" stroke="#4d82d0" stroke-width="11" stroke-linecap="round"></path>
+                    <path d="M500 64 C508 122 506 180 502 236 C497 296 494 350 500 396" fill="none" stroke="#7093c6" stroke-width="11" stroke-linecap="round"></path>
+                    <path d="M500 464 C500 528 502 586 524 666" fill="none" stroke="#7093c6" stroke-width="11" stroke-linecap="round"></path>
+                    <path d="M540 404 C580 338 634 308 682 234 C716 180 744 148 790 112" fill="none" stroke="#88a8d5" stroke-width="8" stroke-linecap="round"></path>
+                    <path d="M166 490 C232 446 292 444 344 470 C398 498 446 482 492 444" fill="none" stroke="#88a8d5" stroke-width="7" stroke-linecap="round"></path>
+                    <g filter="url(#admin-map-shadow)">
+                      <circle cx="500" cy="430" r="66" fill="#27539d" opacity=".10"></circle>
+                      <circle cx="500" cy="430" r="42" fill="#27539d" opacity=".14"></circle>
+                      <path d="M470 390 A54 54 0 1 1 452 454" fill="none" stroke="#7ea3d3" stroke-width="10" stroke-linecap="round"></path>
+                      <circle cx="500" cy="430" r="40" fill="#f7fbff"></circle>
+                    </g>
+                    <g font-family="Inter, Arial, sans-serif" font-weight="800" font-size="20">
+                      <g transform="translate(480 122)"><rect width="52" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="48" height="30" rx="6" fill="#7ba946"></rect><text x="26" y="23" text-anchor="middle" fill="#ffffff">A49</text></g>
+                      <g transform="translate(452 610)"><rect width="52" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="48" height="30" rx="6" fill="#7ba946"></rect><text x="26" y="23" text-anchor="middle" fill="#ffffff">A49</text></g>
+                      <g transform="translate(138 244)"><rect width="46" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="42" height="30" rx="6" fill="#7ba946"></rect><text x="23" y="23" text-anchor="middle" fill="#ffffff">A5</text></g>
+                      <g transform="translate(610 420)"><rect width="46" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="42" height="30" rx="6" fill="#7ba946"></rect><text x="23" y="23" text-anchor="middle" fill="#ffffff">A5</text></g>
+                      <g transform="translate(676 190)"><rect width="56" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="52" height="30" rx="6" fill="#7ba946"></rect><text x="28" y="23" text-anchor="middle" fill="#ffffff">A53</text></g>
+                      <g transform="translate(250 486)"><rect width="64" height="34" rx="8" fill="#6d993c"></rect><rect x="2" y="2" width="60" height="30" rx="6" fill="#7ba946"></rect><text x="32" y="23" text-anchor="middle" fill="#ffffff">A458</text></g>
+                      <g transform="translate(812 490)"><rect width="72" height="38" rx="10" fill="#2663c5"></rect><rect x="2" y="2" width="68" height="34" rx="8" fill="#3273dc"></rect><text x="36" y="25" text-anchor="middle" fill="#ffffff">M54</text></g>
+                    </g>
+                    <circle id="area-map-picker-marker-halo" cx="500" cy="430" r="34" fill="#1769aa" opacity=".18"></circle>
+                    <circle id="area-map-picker-marker" cx="500" cy="430" r="14" fill="#1769aa"></circle>
+                    <circle id="area-map-picker-marker-dot" cx="500" cy="430" r="4" fill="#fff"></circle>
+                  </svg>
+                </button>
+                <p id="area-map-picker-status" class="mt-2 text-xs leading-5 text-ink/55">Marker is centred. Click the map, or use arrow keys, to place it where this area appears.</p>
               </div>
               <div>
                 <label class="text-sm font-bold" for="area-sort-order">Display order</label>
@@ -395,19 +470,14 @@
             </div>
             <p id="area-message" class="min-h-6 text-sm text-ink/70" role="status"></p>
           </form>
-
-          <div class="mt-8 flex items-center justify-between gap-4">
-            <h3 class="text-2xl font-black tracking-normal">Current areas</h3>
-            <button id="refresh-areas" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
           </div>
-          <div id="admin-areas" class="mt-5 grid gap-4"></div>
         </div>
 
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="instructors">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Coverage</p>
-              <h2 id="instructor-form-title" class="mt-2 text-3xl font-black tracking-normal">Instructors and areas</h2>
+              <p class="text-sm font-black uppercase text-leaf">Coverage</p>
+              <h2 id="instructor-form-title" class="mt-2 text-3xl font-black">Instructors and areas</h2>
             </div>
             <button id="toggle-instructor-form" class="icon-action" type="button" aria-expanded="false" aria-controls="instructor-form-panel" aria-label="Add instructor">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
@@ -416,7 +486,7 @@
 
           <div id="instructor-list-panel">
             <div class="mt-8 flex items-center justify-between gap-4">
-              <h3 class="text-2xl font-black tracking-normal">Current instructors</h3>
+              <h3 class="text-2xl font-black">Current instructors</h3>
               <button id="refresh-instructors" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
             </div>
             <div id="admin-instructors" class="mt-5 grid gap-4"></div>
@@ -485,9 +555,9 @@
         <div class="admin-view mt-6 hidden rounded-md bg-white p-7 shadow-xl shadow-ink/10" data-admin-section="admins">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Private access</p>
-              <h2 class="mt-2 text-3xl font-black tracking-normal">Admin users</h2>
-              <p class="mt-2 text-sm leading-6 text-ink/68">Create users for instructors or staff who need access to this admin area. Temporary passwords should be shared privately.</p>
+              <p class="text-sm font-black uppercase text-leaf">Private access</p>
+              <h2 class="mt-2 text-3xl font-black">Admin users</h2>
+              <p class="mt-2 text-sm leading-6 text-ink/68">Create users for instructors or staff who need access to this admin area. Supabase sends password setup and reset links by email.</p>
             </div>
             <button id="toggle-admin-user-form" class="icon-action" type="button" aria-expanded="false" aria-controls="admin-user-form-panel" aria-label="Add admin">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
@@ -496,7 +566,7 @@
 
           <div id="admin-user-list-panel">
             <div class="mt-8 flex items-center justify-between gap-4">
-              <h3 class="text-2xl font-black tracking-normal">Current admins</h3>
+              <h3 class="text-2xl font-black">Current admins</h3>
               <button id="refresh-admin-users" class="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold hover:border-leaf hover:text-leaf" type="button">Refresh</button>
             </div>
             <div id="admin-users" class="mt-5 grid gap-4"></div>
@@ -526,10 +596,10 @@
                   </span>
                 </div>
               </div>
-              <div>
-                <label class="text-sm font-bold" for="admin-user-password">Temporary password</label>
-                <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 outline-none focus:ring-2 focus:ring-leaf" id="admin-user-password" name="admin-user-password" type="password" minlength="12" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}" autocomplete="new-password" required>
-                <p id="admin-user-password-help" class="mt-2 text-xs leading-5 text-ink/55">Minimum 12 characters with lowercase, uppercase, digit, and symbol. Required when creating a new admin or resetting a password.</p>
+              <div class="rounded-md border border-leaf/20 bg-kerb p-4">
+                <input id="admin-user-password" name="admin-user-password" type="hidden" value="">
+                <p class="text-sm font-black text-road">Password email</p>
+                <p id="admin-user-password-help" class="mt-2 text-xs leading-5 text-ink/60">New admins receive a Supabase email link to set their password. Existing admins can be sent a reset email from the admin list.</p>
               </div>
             </div>
             <label class="flex items-center gap-3 text-sm font-bold">

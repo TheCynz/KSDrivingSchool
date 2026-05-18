@@ -4,6 +4,9 @@
     const gallery = document.querySelector("#pass-gallery");
     const dealPreview = document.querySelector("#deal-preview");
     const dealList = document.querySelector("#deal-list");
+    const dealCarouselDots = document.querySelector("#deal-carousel-dots");
+    const dealCarouselPrev = document.querySelector("#deal-carousel-prev");
+    const dealCarouselNext = document.querySelector("#deal-carousel-next");
     const reviewCarousel = document.querySelector("#review-carousel");
     const reviewCarouselStatus = document.querySelector("#review-carousel-status");
     const reviewCarouselDots = document.querySelector("#review-carousel-dots");
@@ -18,11 +21,21 @@
     const coverageMapMarkers = document.querySelector("#coverage-map-markers");
     const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
     const primaryNav = document.querySelector("#primary-nav");
+    const areaMapWidth = 1000;
+    const areaMapHeight = 720;
+    const areaMapCenterX = areaMapWidth / 2;
+    const areaMapCenterY = 430;
     let selectedAreaSlug = "";
     let preferredTransmission = "";
     let instructors = [];
     let areas = [];
     let cachedVisibleAreaSlugs = [];
+    let visibleDeals = [];
+    let dealAutoAdvanceTimer = 0;
+    let activeDealIndex = 0;
+    let visibleReviews = [];
+    let reviewAutoAdvanceTimer = 0;
+    let activeReviewIndex = 0;
     const safeUrlPattern = /^(https?:)?\/\//i;
     function alignHashTarget() {
         const targetId = decodeURIComponent(window.location.hash || "").replace(/^#/, "");
@@ -45,6 +58,30 @@
       </div>
     `;
     }
+    function dealEnquiryHref(deal) {
+        const email = shared.safeEmail(window.KS_SITE?.email, "ksdrivingschool66@gmail.com");
+        const validUntil = deal.valid_until
+            ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(deal.valid_until))
+            : "";
+        const bodyLines = [
+            "Hi KS Driving School,",
+            "",
+            "I am interested in this current offer:",
+            "",
+            `Offer: ${deal.title || "Current driving lesson offer"}`,
+            deal.summary ? `Summary: ${deal.summary}` : "",
+            deal.details ? `Details: ${deal.details}` : "",
+            validUntil ? `Valid until: ${validUntil}` : "",
+            "",
+            "Please can you send me more details and current availability?",
+            "",
+            "Name:",
+            "Phone:",
+            "Postcode:",
+            "Preferred transmission:"
+        ].filter(Boolean);
+        return `mailto:${email}?subject=${encodeURIComponent(`Current lesson offer enquiry: ${deal.title || "KS Driving School"}`)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+    }
     function dealCard(deal, options = {}) {
         const validUntil = deal.valid_until
             ? `<p class="mt-3 text-sm font-bold text-leaf">Valid until ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(deal.valid_until))}</p>`
@@ -53,34 +90,152 @@
         const compact = Boolean(options.compact);
         return `
       <article class="${compact ? "rounded-md border border-ink/10 bg-kerb p-5" : "rounded-md bg-white p-6 shadow-xl shadow-ink/8 sm:p-8"}">
-        <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Current deal</p>
-        <h2 class="mt-3 ${compact ? "text-3xl" : "text-3xl sm:text-4xl"} font-black tracking-normal">${escapeHtml(deal.title)}</h2>
+        <p class="text-sm font-black uppercase text-leaf">Current deal</p>
+        <h2 class="mt-3 ${compact ? "text-3xl" : "text-3xl sm:text-4xl"} font-black">${escapeHtml(deal.title)}</h2>
         <p class="mt-4 text-base leading-7 text-ink/72">${escapeHtml(deal.summary)}</p>
         ${details}
         ${validUntil}
         <div class="mt-6 flex flex-col gap-3 sm:flex-row ${compact ? "lg:flex-col" : ""}">
-          <a class="inline-flex items-center justify-center rounded-md bg-signal px-5 py-3 text-sm font-black text-ink transition hover:bg-road hover:text-white" href="${compact ? "../deals/" : "mailto:ksdrivingschool66@gmail.com?subject=Current%20lesson%20deals%20enquiry"}">${escapeHtml(deal.cta_label || "Ask about this deal")}</a>
+          <a class="inline-flex items-center justify-center rounded-md bg-signal px-5 py-3 text-sm font-black text-ink transition hover:bg-road hover:text-white" href="${compact ? "../deals/" : escapeHtml(dealEnquiryHref(deal))}">${escapeHtml(deal.cta_label || "Ask about this deal")}</a>
           <a class="inline-flex items-center justify-center rounded-md border border-ink/15 bg-white px-5 py-3 text-sm font-black text-ink transition hover:border-leaf hover:text-leaf" data-phone-link data-phone-label="Call the office" href="tel:+443337720143">Call the office</a>
         </div>
       </article>
     `;
     }
+    function homeDealCard(deal, index, position) {
+        const active = position === "active";
+        const validUntil = deal.valid_until
+            ? `<p class="mt-3 text-xs font-black uppercase text-leaf">Valid until ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(deal.valid_until))}</p>`
+            : "";
+        const actions = active
+            ? `
+        <div class="mt-6 flex flex-col gap-2">
+          <a class="inline-flex items-center justify-center rounded-md bg-road px-4 py-3 text-sm font-black text-white transition hover:bg-signal hover:text-ink" href="${escapeHtml(dealEnquiryHref(deal))}">${escapeHtml(deal.cta_label || "Ask about this deal")}</a>
+          <a class="inline-flex items-center justify-center rounded-md border border-ink/12 bg-white px-4 py-3 text-sm font-black text-ink transition hover:border-leaf hover:text-leaf" data-phone-link data-phone-label="Call the office" href="tel:+443337720143">Call the office</a>
+        </div>
+      `
+            : "";
+        return `
+      <article class="deal-offer-card ${active ? "deal-offer-card-active" : ""} flex min-h-[240px] flex-col justify-between rounded-md border border-ink/10 bg-white p-4 text-ink sm:min-h-[280px] sm:p-5 lg:p-6" data-deal-slide="${index}" data-deal-position="${position}">
+        <div>
+          <span class="inline-flex rounded-full bg-signal px-3 py-1 text-xs font-black uppercase text-ink">Offer</span>
+          <h3 class="mt-4 text-xl font-black leading-tight sm:text-2xl">${escapeHtml(deal.title)}</h3>
+          <p class="mt-3 text-sm leading-6 text-ink/70">${escapeHtml(deal.summary)}</p>
+          ${validUntil}
+        </div>
+        ${actions}
+      </article>
+    `;
+    }
+    function setDealControlsVisible(visible) {
+        dealCarouselPrev?.classList.toggle("hidden", !visible);
+        dealCarouselNext?.classList.toggle("hidden", !visible);
+    }
+    function updateDealDots() {
+        if (!dealCarouselDots)
+            return;
+        Array.from(dealCarouselDots.querySelectorAll("button")).forEach((dot, index) => {
+            const active = index === activeDealIndex;
+            dot.classList.toggle("bg-road", active);
+            dot.classList.toggle("w-7", active);
+            dot.classList.toggle("w-2", !active);
+            dot.classList.toggle("bg-ink/18", !active);
+            dot.setAttribute("aria-current", active ? "true" : "false");
+        });
+    }
+    function dealAt(index) {
+        const total = visibleDeals.length;
+        if (total === 0)
+            return null;
+        return visibleDeals[((index % total) + total) % total];
+    }
+    function renderDealWindow() {
+        if (!dealPreview || visibleDeals.length === 0)
+            return;
+        const total = visibleDeals.length;
+        const slots = [
+            { index: activeDealIndex - 1, position: "previous" },
+            { index: activeDealIndex, position: "active" },
+            { index: activeDealIndex + 1, position: "next" }
+        ];
+        dealPreview.innerHTML = slots.map((slot) => {
+            const deal = dealAt(slot.index);
+            const normalizedIndex = ((slot.index % total) + total) % total;
+            return deal ? homeDealCard(deal, normalizedIndex, slot.position) : "";
+        }).join("");
+        updateDealDots();
+        bindSiteContactLinks();
+    }
+    function setActiveDealIndex(index) {
+        if (visibleDeals.length === 0)
+            return;
+        activeDealIndex = ((index % visibleDeals.length) + visibleDeals.length) % visibleDeals.length;
+        renderDealWindow();
+    }
+    function stopDealAutoAdvance() {
+        if (!dealAutoAdvanceTimer)
+            return;
+        window.clearInterval(dealAutoAdvanceTimer);
+        dealAutoAdvanceTimer = 0;
+    }
+    function startDealAutoAdvance() {
+        stopDealAutoAdvance();
+        if (visibleDeals.length <= 1 || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+            return;
+        dealAutoAdvanceTimer = window.setInterval(() => {
+            if (document.hidden)
+                return;
+            setActiveDealIndex(activeDealIndex + 1);
+        }, 5600);
+    }
+    function bindDealCarouselControls() {
+        const move = (direction) => setActiveDealIndex(activeDealIndex + direction);
+        dealCarouselPrev?.addEventListener("click", () => move(-1));
+        dealCarouselNext?.addEventListener("click", () => move(1));
+    }
+    function bindSiteContactLinks() {
+        if (!window.KS_SITE)
+            return;
+        document.querySelectorAll("[data-phone-link]").forEach((element) => {
+            const phoneDisplay = window.KS_SITE.phoneDisplay || "0333 7720143";
+            element.href = `tel:${window.KS_SITE.phoneHref || "+443337720143"}`;
+            if (element.dataset.phoneLabel || element.children.length === 0) {
+                element.textContent = element.dataset.phoneLabel || phoneDisplay;
+            }
+        });
+    }
     function renderDeals(deals) {
-        const visibleDeals = deals || [];
+        const currentDeals = deals || [];
         if (dealPreview) {
             const homeDealSection = dealPreview.closest("[data-home-deals]");
-            if (visibleDeals.length > 0) {
-                dealPreview.innerHTML = dealCard(visibleDeals[0], { compact: true });
+            stopDealAutoAdvance();
+            visibleDeals = currentDeals;
+            activeDealIndex = 0;
+            if (currentDeals.length > 0) {
                 homeDealSection?.classList.remove("hidden");
+                setDealControlsVisible(currentDeals.length > 1);
+                if (dealCarouselDots) {
+                    dealCarouselDots.innerHTML = currentDeals.map((deal, index) => `
+            <button class="h-2.5 ${index === 0 ? "w-7 bg-road" : "w-2 bg-ink/18"} rounded-full transition-all duration-300" type="button" data-deal-dot="${index}" aria-label="Show offer ${index + 1}" aria-current="${index === 0 ? "true" : "false"}"></button>
+          `).join("");
+                    dealCarouselDots.querySelectorAll("[data-deal-dot]").forEach((dot) => {
+                        dot.addEventListener("click", () => setActiveDealIndex(Number(dot.dataset.dealDot || 0)));
+                    });
+                }
+                renderDealWindow();
+                startDealAutoAdvance();
             }
             else {
                 dealPreview.innerHTML = "";
+                if (dealCarouselDots)
+                    dealCarouselDots.innerHTML = "";
+                setDealControlsVisible(false);
                 homeDealSection?.classList.add("hidden");
             }
         }
         if (dealList) {
-            dealList.innerHTML = visibleDeals.length > 0
-                ? visibleDeals.map((deal) => dealCard(deal)).join("")
+            dealList.innerHTML = currentDeals.length > 0
+                ? currentDeals.map((deal) => dealCard(deal)).join("")
                 : `
           <div class="rounded-md border border-ink/10 bg-kerb p-5 text-ink/70">
             <p class="text-lg font-black text-ink">No active deals currently.</p>
@@ -88,32 +243,31 @@
           </div>
         `;
         }
-        if (window.KS_SITE) {
-            document.querySelectorAll("[data-phone-link]").forEach((element) => {
-                const phoneDisplay = window.KS_SITE.phoneDisplay || "0333 7720143";
-                element.href = `tel:${window.KS_SITE.phoneHref || "+443337720143"}`;
-                if (element.dataset.phoneLabel || element.children.length === 0) {
-                    element.textContent = element.dataset.phoneLabel || phoneDisplay;
-                }
-            });
-        }
+        bindSiteContactLinks();
         alignHashTarget();
     }
     function reviewStars(rating) {
         const safeRating = Math.max(0, Math.min(5, Number.parseInt(String(rating || 0), 10) || 0));
         return `${"★".repeat(safeRating)}${"☆".repeat(5 - safeRating)}`;
     }
-    function reviewCard(review, index) {
+    function reviewCard(review, index, position) {
         const rating = Math.max(0, Math.min(5, Number.parseInt(String(review.rating || 0), 10) || 0));
+        const active = position === "active";
         return `
-      <article class="flex min-h-[270px] min-w-[88%] snap-start flex-col justify-between rounded-md border border-ink/8 bg-white p-6 shadow-sm shadow-ink/5 transition sm:min-w-[48%] sm:p-7 lg:min-w-[32%]" data-review-slide="${index}">
-        <div>
-          <p class="text-sm font-black tracking-[.12em] text-signal" aria-label="${rating} out of 5 stars">${reviewStars(rating)}</p>
-          <blockquote class="mt-6 text-xl font-black leading-8 tracking-normal text-ink sm:text-2xl sm:leading-9">"${escapeHtml(review.review_text)}"</blockquote>
+      <article class="review-slide ${active ? "review-slide-active" : ""} relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-md border border-ink/8 bg-white p-4 ring-1 ring-ink/5 sm:min-h-[300px] sm:p-6 lg:p-7" data-review-slide="${index}" data-review-position="${position}">
+        <div class="relative">
+          <div class="inline-flex max-w-full items-center gap-1.5 rounded-full bg-kerb px-2.5 py-1.5 text-xs font-black text-road sm:gap-2 sm:px-3 sm:text-sm">
+            <span class="text-signal" aria-label="${rating} out of 5 stars">${reviewStars(rating)}</span>
+            <span class="text-xs text-ink/45">${rating}/5</span>
+          </div>
+          <blockquote class="mt-6 text-lg font-black leading-7 text-ink sm:mt-7 sm:text-xl sm:leading-8 lg:text-2xl lg:leading-9">"${escapeHtml(review.review_text)}"</blockquote>
         </div>
-        <div class="mt-8 flex items-center justify-between gap-4 border-t border-ink/8 pt-4">
-          <p class="text-sm font-black text-ink">${escapeHtml(review.reviewer_name)}</p>
-          <p class="text-xs font-bold text-ink/50">${rating}/5</p>
+        <div class="relative mt-8 flex items-center justify-between gap-4 border-t border-ink/8 pt-4">
+          <div>
+            <p class="text-sm font-black text-ink">${escapeHtml(review.reviewer_name)}</p>
+            <p class="mt-1 text-[0.68rem] font-bold uppercase text-leaf/80 sm:text-xs">Learner review</p>
+          </div>
+          <span class="h-2.5 w-2.5 rounded-full bg-signal shadow-[0_0_0_5px_rgba(246,196,69,.18)]" aria-hidden="true"></span>
         </div>
       </article>
     `;
@@ -125,6 +279,7 @@
     function renderReviewState(kind, message) {
         if (!reviewCarousel)
             return;
+        stopReviewAutoAdvance();
         const tone = kind === "error" ? "text-ink/60" : "text-ink/62";
         reviewCarousel.innerHTML = `
       <div class="w-full rounded-md border border-ink/8 bg-kerb/70 p-6 ${tone}">
@@ -141,35 +296,67 @@
     function updateReviewDots() {
         if (!reviewCarousel || !reviewCarouselDots)
             return;
-        const slides = Array.from(reviewCarousel.querySelectorAll("[data-review-slide]"));
-        if (slides.length === 0)
-            return;
-        const activeIndex = slides.reduce((closestIndex, slide, index) => {
-            const currentDistance = Math.abs(slide.getBoundingClientRect().left - reviewCarousel.getBoundingClientRect().left);
-            const closestSlide = slides[closestIndex];
-            const closestDistance = Math.abs(closestSlide.getBoundingClientRect().left - reviewCarousel.getBoundingClientRect().left);
-            return currentDistance < closestDistance ? index : closestIndex;
-        }, 0);
         Array.from(reviewCarouselDots.querySelectorAll("button")).forEach((dot, index) => {
-            const active = index === activeIndex;
+            const active = index === activeReviewIndex;
             dot.classList.toggle("bg-road", active);
+            dot.classList.toggle("w-7", active);
+            dot.classList.toggle("w-2", !active);
             dot.classList.toggle("bg-ink/18", !active);
             dot.setAttribute("aria-current", active ? "true" : "false");
         });
+    }
+    function reviewAt(index) {
+        const total = visibleReviews.length;
+        if (total === 0)
+            return null;
+        return visibleReviews[((index % total) + total) % total];
+    }
+    function renderReviewWindow() {
+        if (!reviewCarousel || visibleReviews.length === 0)
+            return;
+        const total = visibleReviews.length;
+        const slots = [
+            { index: activeReviewIndex - 1, position: "previous" },
+            { index: activeReviewIndex, position: "active" },
+            { index: activeReviewIndex + 1, position: "next" }
+        ];
+        reviewCarousel.innerHTML = slots.map((slot) => {
+            const review = reviewAt(slot.index);
+            const normalizedIndex = ((slot.index % total) + total) % total;
+            return review ? reviewCard(review, normalizedIndex, slot.position) : "";
+        }).join("");
+        updateReviewDots();
+    }
+    function setActiveReviewIndex(index) {
+        if (visibleReviews.length === 0)
+            return;
+        activeReviewIndex = ((index % visibleReviews.length) + visibleReviews.length) % visibleReviews.length;
+        renderReviewWindow();
+    }
+    function stopReviewAutoAdvance() {
+        if (!reviewAutoAdvanceTimer)
+            return;
+        window.clearInterval(reviewAutoAdvanceTimer);
+        reviewAutoAdvanceTimer = 0;
+    }
+    function startReviewAutoAdvance() {
+        stopReviewAutoAdvance();
+        if (visibleReviews.length <= 1 || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+            return;
+        reviewAutoAdvanceTimer = window.setInterval(() => {
+            if (document.hidden)
+                return;
+            setActiveReviewIndex(activeReviewIndex + 1);
+        }, 5200);
     }
     function bindReviewCarouselControls() {
         if (!reviewCarousel)
             return;
         const scrollOneSlide = (direction) => {
-            const firstSlide = reviewCarousel.querySelector("[data-review-slide]");
-            const width = firstSlide ? firstSlide.getBoundingClientRect().width + 16 : reviewCarousel.clientWidth;
-            reviewCarousel.scrollBy({ left: direction * width, behavior: "smooth" });
+            setActiveReviewIndex(activeReviewIndex + direction);
         };
         reviewCarouselPrev?.addEventListener("click", () => scrollOneSlide(-1));
         reviewCarouselNext?.addEventListener("click", () => scrollOneSlide(1));
-        reviewCarousel.addEventListener("scroll", () => {
-            window.requestAnimationFrame(updateReviewDots);
-        }, { passive: true });
     }
     function renderReviews(reviews) {
         if (!reviewCarousel)
@@ -181,22 +368,26 @@
             });
             return;
         }
-        reviewCarousel.innerHTML = reviews.map(reviewCard).join("");
+        visibleReviews = reviews;
         setReviewControlsVisible(reviews.length > 1);
+        activeReviewIndex = 0;
         if (reviewCarouselStatus) {
             reviewCarouselStatus.textContent = `${reviews.length} learner review${reviews.length === 1 ? "" : "s"} loaded.`;
         }
         if (reviewCarouselDots) {
             reviewCarouselDots.innerHTML = reviews.map((review, index) => `
-        <button class="h-2 w-2 rounded-full ${index === 0 ? "bg-road" : "bg-ink/18"} transition sm:h-2.5 sm:w-2.5" type="button" data-review-dot="${index}" aria-label="Show review ${index + 1}" aria-current="${index === 0 ? "true" : "false"}"></button>
+        <button class="h-2.5 ${index === 0 ? "w-7 bg-road" : "w-2 bg-ink/18"} rounded-full transition-all duration-300" type="button" data-review-dot="${index}" aria-label="Show review ${index + 1}" aria-current="${index === 0 ? "true" : "false"}"></button>
       `).join("");
             reviewCarouselDots.querySelectorAll("[data-review-dot]").forEach((dot) => {
                 dot.addEventListener("click", () => {
-                    const slide = reviewCarousel.querySelector(`[data-review-slide="${dot.dataset.reviewDot}"]`);
-                    slide?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+                    setActiveReviewIndex(Number(dot.dataset.reviewDot || 0));
                 });
             });
         }
+        window.requestAnimationFrame(() => {
+            renderReviewWindow();
+            startReviewAutoAdvance();
+        });
     }
     async function loadReviews(client) {
         if (!reviewCarousel)
@@ -233,16 +424,31 @@
             return;
         }
         const today = new Date().toISOString().slice(0, 10);
-        const { data, error } = await client
+        let { data, error } = await client
             .from("current_deals")
-            .select("title, summary, details, cta_label, valid_from, valid_until")
+            .select("title, summary, details, cta_label, valid_from, valid_until, is_featured")
             .eq("deal_type", "pupil")
             .eq("published", true)
             .or(`valid_from.is.null,valid_from.lte.${today}`)
             .or(`valid_until.is.null,valid_until.gte.${today}`)
+            .order("is_featured", { ascending: false })
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: false })
             .limit(6);
+        if (error && String(error.message || "").includes("is_featured")) {
+            const fallback = await client
+                .from("current_deals")
+                .select("title, summary, details, cta_label, valid_from, valid_until")
+                .eq("deal_type", "pupil")
+                .eq("published", true)
+                .or(`valid_from.is.null,valid_from.lte.${today}`)
+                .or(`valid_until.is.null,valid_until.gte.${today}`)
+                .order("sort_order", { ascending: true })
+                .order("created_at", { ascending: false })
+                .limit(6);
+            data = fallback.data;
+            error = fallback.error;
+        }
         renderDeals(error || !data ? [] : data);
     }
     function escapeHtml(value) {
@@ -442,20 +648,36 @@
             tab.addEventListener("click", () => setSelectedArea(tab.dataset.areaSlug));
         });
     }
+    function areaStoredPointToSvg(mapX, mapY) {
+        const storedX = Number(mapX);
+        const storedY = Number(mapY);
+        if (!Number.isFinite(storedX) || !Number.isFinite(storedY))
+            return { x: areaMapCenterX, y: areaMapCenterY };
+        if (storedX === 0 && storedY === 0)
+            return { x: areaMapCenterX, y: areaMapCenterY };
+        if (storedX >= 0 && storedX <= 100 && storedY >= 0 && storedY <= 100) {
+            return { x: (storedX / 100) * areaMapWidth, y: (storedY / 100) * areaMapHeight };
+        }
+        if (storedX < 0 || storedY < 0) {
+            return { x: areaMapCenterX + storedX, y: areaMapCenterY + storedY };
+        }
+        return { x: storedX, y: storedY };
+    }
     function renderMapMarkers(visible) {
         if (!coverageMapMarkers)
             return;
         coverageMapMarkers.innerHTML = visible.map((area) => {
-            const x = Math.max(0, Math.min(720, Number(area.map_x) || 360));
-            const y = Math.max(0, Math.min(520, Number(area.map_y) || 260));
+            const point = areaStoredPointToSvg(area.map_x, area.map_y);
+            const x = Math.max(0, Math.min(areaMapWidth, point.x));
+            const y = Math.max(0, Math.min(areaMapHeight, point.y));
             const active = area.slug === selectedAreaSlug;
             const primary = area.is_primary;
             const haloRadius = primary ? 82 : 52;
             const markerRadius = primary ? 46 : 29;
             const fill = primary ? (active ? "#0b3a78" : "#1769aa") : "#f6c445";
             const labelWidth = Math.min(172, Math.max(92, area.name.length * 10 + 28));
-            const labelX = Math.max(8, Math.min(720 - labelWidth - 8, x - labelWidth / 2));
-            const labelY = y > 430 ? y - 58 : y - 46;
+            const labelX = Math.max(8, Math.min(areaMapWidth - labelWidth - 8, x - labelWidth / 2));
+            const labelY = y > areaMapHeight - 90 ? y - 58 : y - 46;
             const textY = labelY + 20;
             return `
         <g class="map-area cursor-pointer ${active ? "map-area-active" : ""}" data-area-slug="${escapeHtml(area.slug)}" role="button" tabindex="0" aria-label="${escapeHtml(area.name)} instructors">
@@ -626,6 +848,7 @@
         applyLessonFinder(new FormData(lessonFinder));
     });
     shared.bindMobileNav(mobileNavToggle, primaryNav);
+    bindDealCarouselControls();
     bindReviewCarouselControls();
     loadPosts();
     window.addEventListener("hashchange", alignHashTarget);

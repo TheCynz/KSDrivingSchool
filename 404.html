@@ -11,26 +11,9 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ink: "#17211d",
-              road: "#0b3a78",
-              signal: "#f6c445",
-              kerb: "#eef5fb",
-              leaf: "#1769aa"
-            },
-            fontFamily: {
-              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
-            }
-          }
-        }
-      };
-    </script>
+    <script src="assets/theme.js"></script>
     <link rel="icon" href="assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/styles.css?v=theme-20260517">
   </head>
   <body class="min-h-screen bg-kerb text-ink antialiased">
     <header class="border-b border-ink/10 bg-white shadow-sm">
@@ -51,8 +34,8 @@
     <main class="flex min-h-[calc(100vh-180px)] items-center px-5 py-16">
       <section class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[1fr_360px] lg:items-center">
         <div>
-          <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Page not found</p>
-          <h1 class="mt-3 max-w-3xl text-4xl font-black tracking-normal text-ink sm:text-6xl">That page is not on this website.</h1>
+          <p class="text-sm font-black uppercase text-leaf">Page not found</p>
+          <h1 class="mt-3 max-w-3xl text-4xl font-black text-ink sm:text-6xl">That page is not on this website.</h1>
           <p class="mt-5 max-w-2xl text-lg leading-8 text-ink/72">The link may be old, mistyped, or moved. Head back to the KS Driving School home page to book lessons, check covered areas, or view recent passes.</p>
           <div class="mt-8 flex flex-col gap-3 sm:flex-row">
             <a class="inline-flex items-center justify-center rounded-md bg-road px-6 py-4 text-base font-black text-white shadow-lg shadow-road/20 transition hover:bg-leaf" href="home/">Go home</a>
@@ -62,7 +45,7 @@
 
         <aside class="rounded-md bg-white p-6 shadow-xl shadow-ink/8">
           <p class="text-7xl font-black text-road">404</p>
-          <h2 class="mt-4 text-2xl font-black tracking-normal">Need lessons?</h2>
+          <h2 class="mt-4 text-2xl font-black">Need lessons?</h2>
           <p class="mt-3 text-sm leading-6 text-ink/68">Call, email, or use the booking page and include your postcode so the right instructor can reply.</p>
           <div class="mt-5 space-y-3 text-sm">
             <a class="block rounded-md border border-ink/15 px-4 py-3 font-black text-ink transition hover:border-leaf hover:text-leaf" data-phone-link href="tel:+443337720143">0333 7720143</a>

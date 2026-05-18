@@ -20,26 +20,9 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ink: "#17211d",
-              road: "#0b3a78",
-              signal: "#f6c445",
-              kerb: "#eef5fb",
-              leaf: "#1769aa"
-            },
-            fontFamily: {
-              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
-            }
-          }
-        }
-      };
-    </script>
+    <script src="../assets/theme.js"></script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=deals">
+    <link rel="stylesheet" href="../assets/styles.css?v=theme-20260517">
   </head>
   <body class="bg-kerb text-ink antialiased">
     <header class="sticky top-0 z-30 border-b border-ink/10 bg-white/96 shadow-sm backdrop-blur">
@@ -63,8 +46,8 @@
     <main>
       <section class="bg-road px-5 py-16 text-white sm:py-20">
         <div class="mx-auto max-w-6xl">
-          <p class="text-sm font-black uppercase tracking-[.18em] text-signal">Current deals</p>
-          <h1 class="mt-3 max-w-4xl text-4xl font-black tracking-normal sm:text-6xl">Current driving lesson deals.</h1>
+          <p class="text-sm font-black uppercase text-signal">Current deals</p>
+          <h1 class="mt-3 max-w-4xl text-4xl font-black sm:text-6xl">Current driving lesson deals.</h1>
           <p class="mt-5 max-w-2xl text-lg leading-8 text-white/78">Driving lesson offers for learners in Shrewsbury, Telford and nearby Shropshire areas.</p>
         </div>
       </section>
@@ -75,7 +58,7 @@
             <div class="rounded-md bg-white p-6 text-ink/70 shadow-xl shadow-ink/8">Loading current deals...</div>
           </div>
           <aside class="rounded-md bg-white p-6 shadow-xl shadow-ink/8">
-            <h2 class="text-2xl font-black tracking-normal">Before you book</h2>
+            <h2 class="text-2xl font-black">Before you book</h2>
             <div class="mt-5 grid gap-3 text-sm leading-6 text-ink/72">
               <p class="rounded-md bg-kerb p-3">Tell us your postcode and whether you want manual or automatic lessons.</p>
               <p class="rounded-md bg-kerb p-3">Ask which instructors currently have diary space in your area.</p>

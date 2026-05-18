@@ -75,10 +75,10 @@
             <span class="rounded bg-kerb px-3 py-2 text-sm font-black text-road">${shared.escapeHtml(instructor.transmission || "Lessons")}</span>
             <span class="rounded bg-kerb px-3 py-2 text-sm font-black text-road">${shared.escapeHtml(areaLabel)}</span>
           </div>
-          <h2 class="mt-6 text-3xl font-black tracking-normal sm:text-4xl">Learn with ${shared.escapeHtml(instructor.name)}.</h2>
+          <h2 class="mt-6 text-3xl font-black sm:text-4xl">Learn with ${shared.escapeHtml(instructor.name)}.</h2>
           <p class="mt-5 text-lg leading-8 text-ink/74">${shared.escapeHtml(description)}</p>
           <div class="mt-8 rounded-md bg-kerb p-5">
-            <p class="text-sm font-black uppercase tracking-[.18em] text-leaf">Book lessons</p>
+            <p class="text-sm font-black uppercase text-leaf">Book lessons</p>
             <p class="mt-3 leading-7 text-ink/72">Call or email with your postcode, availability, and whether you want manual or automatic lessons.</p>
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
               <a class="rounded-md bg-signal px-5 py-4 text-center font-black text-ink transition hover:bg-road hover:text-white" href="tel:${shared.escapeHtml(directPhoneHref)}">Call ${shared.escapeHtml(directPhone)}</a>
