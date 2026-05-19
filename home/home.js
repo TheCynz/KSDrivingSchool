@@ -59,7 +59,8 @@
     `;
     }
     function dealEnquiryHref(deal) {
-        const email = shared.safeEmail(window.KS_SITE?.email, "ksdrivingschool66@gmail.com");
+        var _a;
+        const email = shared.safeEmail((_a = window.KS_SITE) === null || _a === void 0 ? void 0 : _a.email, "ksdrivingschool66@gmail.com");
         const validUntil = deal.valid_until
             ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(deal.valid_until))
             : "";
@@ -128,8 +129,8 @@
     `;
     }
     function setDealControlsVisible(visible) {
-        dealCarouselPrev?.classList.toggle("hidden", !visible);
-        dealCarouselNext?.classList.toggle("hidden", !visible);
+        dealCarouselPrev === null || dealCarouselPrev === void 0 ? void 0 : dealCarouselPrev.classList.toggle("hidden", !visible);
+        dealCarouselNext === null || dealCarouselNext === void 0 ? void 0 : dealCarouselNext.classList.toggle("hidden", !visible);
     }
     function updateDealDots() {
         if (!dealCarouselDots)
@@ -190,8 +191,8 @@
     }
     function bindDealCarouselControls() {
         const move = (direction) => setActiveDealIndex(activeDealIndex + direction);
-        dealCarouselPrev?.addEventListener("click", () => move(-1));
-        dealCarouselNext?.addEventListener("click", () => move(1));
+        dealCarouselPrev === null || dealCarouselPrev === void 0 ? void 0 : dealCarouselPrev.addEventListener("click", () => move(-1));
+        dealCarouselNext === null || dealCarouselNext === void 0 ? void 0 : dealCarouselNext.addEventListener("click", () => move(1));
     }
     function bindSiteContactLinks() {
         if (!window.KS_SITE)
@@ -212,7 +213,7 @@
             visibleDeals = currentDeals;
             activeDealIndex = 0;
             if (currentDeals.length > 0) {
-                homeDealSection?.classList.remove("hidden");
+                homeDealSection === null || homeDealSection === void 0 ? void 0 : homeDealSection.classList.remove("hidden");
                 setDealControlsVisible(currentDeals.length > 1);
                 if (dealCarouselDots) {
                     dealCarouselDots.innerHTML = currentDeals.map((deal, index) => `
@@ -230,7 +231,7 @@
                 if (dealCarouselDots)
                     dealCarouselDots.innerHTML = "";
                 setDealControlsVisible(false);
-                homeDealSection?.classList.add("hidden");
+                homeDealSection === null || homeDealSection === void 0 ? void 0 : homeDealSection.classList.add("hidden");
             }
         }
         if (dealList) {
@@ -273,8 +274,8 @@
     `;
     }
     function setReviewControlsVisible(visible) {
-        reviewCarouselPrev?.classList.toggle("hidden", !visible);
-        reviewCarouselNext?.classList.toggle("hidden", !visible);
+        reviewCarouselPrev === null || reviewCarouselPrev === void 0 ? void 0 : reviewCarouselPrev.classList.toggle("hidden", !visible);
+        reviewCarouselNext === null || reviewCarouselNext === void 0 ? void 0 : reviewCarouselNext.classList.toggle("hidden", !visible);
     }
     function renderReviewState(kind, message) {
         if (!reviewCarousel)
@@ -355,8 +356,8 @@
         const scrollOneSlide = (direction) => {
             setActiveReviewIndex(activeReviewIndex + direction);
         };
-        reviewCarouselPrev?.addEventListener("click", () => scrollOneSlide(-1));
-        reviewCarouselNext?.addEventListener("click", () => scrollOneSlide(1));
+        reviewCarouselPrev === null || reviewCarouselPrev === void 0 ? void 0 : reviewCarouselPrev.addEventListener("click", () => scrollOneSlide(-1));
+        reviewCarouselNext === null || reviewCarouselNext === void 0 ? void 0 : reviewCarouselNext.addEventListener("click", () => scrollOneSlide(1));
     }
     function renderReviews(reviews) {
         if (!reviewCarousel)
@@ -424,31 +425,16 @@
             return;
         }
         const today = new Date().toISOString().slice(0, 10);
-        let { data, error } = await client
+        const { data, error } = await client
             .from("current_deals")
-            .select("title, summary, details, cta_label, valid_from, valid_until, is_featured")
+            .select("title, summary, details, cta_label, valid_from, valid_until")
             .eq("deal_type", "pupil")
             .eq("published", true)
             .or(`valid_from.is.null,valid_from.lte.${today}`)
             .or(`valid_until.is.null,valid_until.gte.${today}`)
-            .order("is_featured", { ascending: false })
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: false })
             .limit(6);
-        if (error && String(error.message || "").includes("is_featured")) {
-            const fallback = await client
-                .from("current_deals")
-                .select("title, summary, details, cta_label, valid_from, valid_until")
-                .eq("deal_type", "pupil")
-                .eq("published", true)
-                .or(`valid_from.is.null,valid_from.lte.${today}`)
-                .or(`valid_until.is.null,valid_until.gte.${today}`)
-                .order("sort_order", { ascending: true })
-                .order("created_at", { ascending: false })
-                .limit(6);
-            data = fallback.data;
-            error = fallback.error;
-        }
         renderDeals(error || !data ? [] : data);
     }
     function escapeHtml(value) {
@@ -606,7 +592,7 @@
         const activeArea = selectedArea();
         if (!activeArea) {
             selectedAreaTitle.textContent = "No instructors listed yet";
-            instructorMatchMessage?.classList.add("hidden");
+            instructorMatchMessage === null || instructorMatchMessage === void 0 ? void 0 : instructorMatchMessage.classList.add("hidden");
             instructorList.innerHTML = `<div class="rounded-md border border-ink/10 p-4 text-ink/70">Call the office on 0333 7720143 and we will check current lesson availability.</div>`;
             alignHashTarget();
             return;
@@ -730,6 +716,7 @@
         return "";
     }
     function applyLessonFinder(formData) {
+        var _a, _b, _c;
         const area = matchArea(formData.get("lesson-postcode"));
         preferredTransmission = String(formData.get("lesson-transmission") || "").toLowerCase();
         if (!area) {
@@ -740,15 +727,15 @@
         }
         if (!cachedVisibleAreaSlugs.includes(area)) {
             if (lessonFinderMessage) {
-                const areaName = areas.find((item) => item.slug === area)?.name || "that area";
+                const areaName = ((_a = areas.find((item) => item.slug === area)) === null || _a === void 0 ? void 0 : _a.name) || "that area";
                 lessonFinderMessage.textContent = `No instructor is listed for ${areaName} yet. Call 0333 7720143 and we will check availability.`;
             }
             return;
         }
         setSelectedArea(area, { keepTransmission: true });
-        document.querySelector("#instructors")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        (_b = document.querySelector("#instructors")) === null || _b === void 0 ? void 0 : _b.scrollIntoView({ behavior: "smooth", block: "start" });
         if (lessonFinderMessage) {
-            const areaName = areas.find((item) => item.slug === area)?.name || "Area";
+            const areaName = ((_c = areas.find((item) => item.slug === area)) === null || _c === void 0 ? void 0 : _c.name) || "Area";
             lessonFinderMessage.textContent = `${areaName} selected below. Matching ${preferredTransmission} instructors are highlighted.`;
         }
     }
@@ -800,6 +787,7 @@
             .map((area) => area.slug);
     }
     async function loadPosts() {
+        var _a;
         loadAreas(null);
         loadInstructors(null);
         loadDeals(null);
@@ -809,13 +797,18 @@
             alignHashTarget();
             return;
         }
-        const supabase = await window.KS_LOAD_SUPABASE?.();
+        const supabase = await ((_a = window.KS_LOAD_SUPABASE) === null || _a === void 0 ? void 0 : _a.call(window));
         if (!supabase) {
             renderPassPlaceholder();
             alignHashTarget();
             return;
         }
-        const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        const client = shared.getSupabaseClient(supabase);
+        if (!client) {
+            renderPassPlaceholder();
+            alignHashTarget();
+            return;
+        }
         await Promise.all([
             loadAreas(client),
             loadInstructors(client)
@@ -843,7 +836,7 @@
         gallery.innerHTML = data.map(postCard).join("");
         alignHashTarget();
     }
-    lessonFinder?.addEventListener("submit", (event) => {
+    lessonFinder === null || lessonFinder === void 0 ? void 0 : lessonFinder.addEventListener("submit", (event) => {
         event.preventDefault();
         applyLessonFinder(new FormData(lessonFinder));
     });

@@ -5,6 +5,14 @@
             !config.url.includes("YOUR_PROJECT_REF") &&
             !config.publishableKey.includes("YOUR_SUPABASE");
     }
+    function getSupabaseClient(factory = window.supabase) {
+        if (!factory || !hasSupabaseConfig())
+            return null;
+        if (!window.KS_SUPABASE_CLIENT) {
+            window.KS_SUPABASE_CLIENT = factory.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        }
+        return window.KS_SUPABASE_CLIENT;
+    }
     function escapeHtml(value) {
         return String(value)
             .replace(/&/g, "&amp;")
@@ -59,6 +67,7 @@
     window.KS_SHARED = {
         bindMobileNav,
         escapeHtml,
+        getSupabaseClient,
         hasSupabaseConfig,
         initials,
         safeEmail,

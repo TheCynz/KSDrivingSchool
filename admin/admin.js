@@ -156,7 +156,7 @@
             return;
         panel.classList.toggle("hidden", !open);
         button.setAttribute("aria-expanded", String(open));
-        listPanel?.classList.toggle("hidden", open);
+        listPanel === null || listPanel === void 0 ? void 0 : listPanel.classList.toggle("hidden", open);
     }
     function escapeHtml(value) {
         return String(value)
@@ -300,8 +300,71 @@
             .replace(/^-|-$/g, "")
             .slice(0, 100) || `instructor-${crypto.randomUUID().slice(0, 8)}`;
     }
-    function isValidPhoto(file) {
-        return allowedPhotoTypes.has(file.type) && file.size > 0 && file.size <= maxPhotoSize;
+    function canvasToBlob(canvas, type, quality) {
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => resolve(blob), type, quality);
+        });
+    }
+    async function loadImageFile(file) {
+        if ("createImageBitmap" in window) {
+            return createImageBitmap(file);
+        }
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            const url = URL.createObjectURL(file);
+            image.onload = () => {
+                URL.revokeObjectURL(url);
+                resolve(image);
+            };
+            image.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error("Could not read the image file."));
+            };
+            image.src = url;
+        });
+    }
+    async function preparePhotoForUpload(file, fallbackName = "photo") {
+        if (!allowedPhotoTypes.has(file.type) || file.size <= 0) {
+            throw new Error("Photo must be a JPEG, PNG, or WebP image.");
+        }
+        if (file.size <= maxPhotoSize)
+            return file;
+        const image = await loadImageFile(file);
+        const width = image.width || image.naturalWidth;
+        const height = image.height || image.naturalHeight;
+        if (!width || !height)
+            throw new Error("Could not read the image dimensions.");
+        const maxEdge = 1800;
+        const scale = Math.min(1, maxEdge / Math.max(width, height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(width * scale));
+        canvas.height = Math.max(1, Math.round(height * scale));
+        const context = canvas.getContext("2d");
+        if (!context)
+            throw new Error("Could not prepare the image for upload.");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        if ("close" in image && typeof image.close === "function")
+            image.close();
+        const outputType = "image/webp";
+        const qualities = [0.82, 0.72, 0.62, 0.52, 0.42];
+        let smallestBlob = null;
+        for (const quality of qualities) {
+            const blob = await canvasToBlob(canvas, outputType, quality);
+            if (!blob)
+                continue;
+            smallestBlob = blob;
+            if (blob.size <= maxPhotoSize) {
+                return new File([blob], cleanFileName(file, fallbackName).replace(/\.[^.]+$/, outputType === "image/png" ? ".png" : ".webp"), {
+                    type: outputType
+                });
+            }
+        }
+        if (smallestBlob && smallestBlob.size <= maxPhotoSize) {
+            return new File([smallestBlob], cleanFileName(file, fallbackName).replace(/\.[^.]+$/, outputType === "image/png" ? ".png" : ".webp"), {
+                type: outputType
+            });
+        }
+        throw new Error("Photo is too large to compress under 5MB. Try a smaller image.");
     }
     function safeImageUrl(value) {
         try {
@@ -339,8 +402,8 @@
             return;
         input.value = value || "";
         const picker = document.querySelector(`[data-date-input="${inputId}"]`);
-        const label = picker?.querySelector("[data-date-label]");
-        const emptyLabel = picker?.dataset.emptyLabel || (inputId === "deal-valid-from" ? "Start immediately" : "No end date");
+        const label = picker === null || picker === void 0 ? void 0 : picker.querySelector("[data-date-label]");
+        const emptyLabel = (picker === null || picker === void 0 ? void 0 : picker.dataset.emptyLabel) || (inputId === "deal-valid-from" ? "Start immediately" : "No end date");
         if (label)
             label.textContent = formatDateLabel(input.value, emptyLabel);
         renderDatePicker(picker);
@@ -349,7 +412,7 @@
     }
     function datePickerMonth(picker) {
         const input = document.querySelector(`#${picker.dataset.dateInput}`);
-        const selected = parseIsoDate(input?.value);
+        const selected = parseIsoDate(input === null || input === void 0 ? void 0 : input.value);
         const stored = picker.dataset.visibleMonth ? parseIsoDate(`${picker.dataset.visibleMonth}-01`) : null;
         const date = selected || stored || new Date();
         return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -358,18 +421,20 @@
         picker.dataset.visibleMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     }
     function setDatePickerOpen(picker, open) {
-        picker?.querySelector("[data-date-popover]")?.classList.toggle("hidden", !open);
-        picker?.querySelector("[data-date-toggle]")?.setAttribute("aria-expanded", String(open));
+        var _a, _b;
+        (_a = picker === null || picker === void 0 ? void 0 : picker.querySelector("[data-date-popover]")) === null || _a === void 0 ? void 0 : _a.classList.toggle("hidden", !open);
+        (_b = picker === null || picker === void 0 ? void 0 : picker.querySelector("[data-date-toggle]")) === null || _b === void 0 ? void 0 : _b.setAttribute("aria-expanded", String(open));
         if (open)
             renderDatePicker(picker);
     }
     function eventMatch(event, selector, scope) {
+        var _a, _b, _c;
         const path = typeof event.composedPath === "function" ? event.composedPath() : [];
-        const match = path.find((item) => item?.matches?.(selector) && (!scope || scope.contains(item)));
+        const match = path.find((item) => { var _a; return ((_a = item === null || item === void 0 ? void 0 : item.matches) === null || _a === void 0 ? void 0 : _a.call(item, selector)) && (!scope || scope.contains(item)); });
         if (match)
             return match;
-        const target = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
-        const fallback = target?.closest?.(selector);
+        const target = ((_a = event.target) === null || _a === void 0 ? void 0 : _a.nodeType) === 1 ? event.target : (_b = event.target) === null || _b === void 0 ? void 0 : _b.parentElement;
+        const fallback = (_c = target === null || target === void 0 ? void 0 : target.closest) === null || _c === void 0 ? void 0 : _c.call(target, selector);
         return fallback && (!scope || scope.contains(fallback)) ? fallback : null;
     }
     function renderDatePicker(picker) {
@@ -434,26 +499,23 @@
         };
     }
     function updateDealStatusPreview() {
+        var _a;
         if (!dealStatusPreview)
             return;
         const status = dealStatus({
-            published: document.querySelector("#deal-published")?.checked,
-            valid_from: dealValidFrom?.value || null,
-            valid_until: dealValidUntil?.value || null
+            published: (_a = document.querySelector("#deal-published")) === null || _a === void 0 ? void 0 : _a.checked,
+            valid_from: (dealValidFrom === null || dealValidFrom === void 0 ? void 0 : dealValidFrom.value) || null,
+            valid_until: (dealValidUntil === null || dealValidUntil === void 0 ? void 0 : dealValidUntil.value) || null
         });
         dealStatusPreview.className = `rounded-md border p-4 text-sm leading-6 ${status.className}`;
         dealStatusPreview.innerHTML = `<p class="text-base font-black">${status.label}</p><p class="mt-1">${status.description}</p>`;
     }
     function isMissingDealsTable(error) {
-        const message = String(error?.message || "");
+        const message = String((error === null || error === void 0 ? void 0 : error.message) || "");
         return message.includes("current_deals") || message.includes("schema cache") || message.includes("Could not find the table");
     }
-    function isMissingDealFeaturedColumn(error) {
-        const message = String(error?.message || "");
-        return message.includes("is_featured") || message.includes("schema cache");
-    }
     function isMissingReviewsTable(error) {
-        const message = String(error?.message || "");
+        const message = String((error === null || error === void 0 ? void 0 : error.message) || "");
         return message.includes("reviews") || message.includes("schema cache") || message.includes("Could not find the table");
     }
     function ratingStars(rating) {
@@ -577,8 +639,8 @@
             y.value = String(Math.round((safeSvgY / areaMapHeight) * 10000) / 100);
         ["#area-map-picker-marker-halo", "#area-map-picker-marker", "#area-map-picker-marker-dot"].forEach((selector) => {
             const marker = document.querySelector(selector);
-            marker?.setAttribute("cx", String(safeSvgX));
-            marker?.setAttribute("cy", String(safeSvgY));
+            marker === null || marker === void 0 ? void 0 : marker.setAttribute("cx", String(safeSvgX));
+            marker === null || marker === void 0 ? void 0 : marker.setAttribute("cy", String(safeSvgY));
         });
         if (areaMapPickerStatus) {
             areaMapPickerStatus.textContent = safeSvgX === areaMapCenterX && safeSvgY === areaMapCenterY
@@ -591,21 +653,22 @@
         setAreaMapSvgPosition(point.x, point.y);
     }
     function chooseAreaMapPosition(event) {
+        var _a, _b;
         if (!areaMapPicker)
             return;
         const svg = areaMapPicker.querySelector("svg");
         if (!svg)
             return;
         const rect = svg.getBoundingClientRect();
-        const clientX = event.clientX ?? rect.left + rect.width / 2;
-        const clientY = event.clientY ?? rect.top + rect.height / 2;
+        const clientX = (_a = event.clientX) !== null && _a !== void 0 ? _a : rect.left + rect.width / 2;
+        const clientY = (_b = event.clientY) !== null && _b !== void 0 ? _b : rect.top + rect.height / 2;
         const svgX = ((clientX - rect.left) / rect.width) * areaMapWidth;
         const svgY = ((clientY - rect.top) / rect.height) * areaMapHeight;
         setAreaMapSvgPosition(svgX, svgY);
     }
     function moveAreaMapPosition(event) {
         const { x, y } = areaMapInputs();
-        const current = areaStoredPointToSvg(x?.value || 50, y?.value || 50);
+        const current = areaStoredPointToSvg((x === null || x === void 0 ? void 0 : x.value) || 50, (y === null || y === void 0 ? void 0 : y.value) || 50);
         const step = event.shiftKey ? 24 : 12;
         if (event.key === "ArrowLeft") {
             event.preventDefault();
@@ -685,8 +748,9 @@
             /[^A-Za-z0-9]/.test(password);
     }
     async function loadSession() {
+        var _a;
         const { data } = await client.auth.getSession();
-        if (data.session?.user) {
+        if ((_a = data.session) === null || _a === void 0 ? void 0 : _a.user) {
             if (isPasswordRecoveryRoute()) {
                 setPasswordRecoveryMode(data.session.user);
             }
@@ -749,22 +813,12 @@
     }
     async function loadAdminDeals() {
         adminDeals.innerHTML = `<p class="text-sm text-ink/60">Loading deals...</p>`;
-        let { data, error } = await client
+        const { data, error } = await client
             .from("current_deals")
-            .select("id, deal_type, title, summary, details, cta_label, sort_order, is_featured, published, valid_from, valid_until, created_at")
-            .order("is_featured", { ascending: false })
+            .select("*")
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: false });
-        dealsSupportFeatured = !isMissingDealFeaturedColumn(error);
-        if (error && !dealsSupportFeatured) {
-            const fallback = await client
-                .from("current_deals")
-                .select("id, deal_type, title, summary, details, cta_label, sort_order, published, valid_from, valid_until, created_at")
-                .order("sort_order", { ascending: true })
-                .order("created_at", { ascending: false });
-            data = (fallback.data || []).map((deal) => ({ ...deal, is_featured: false }));
-            error = fallback.error;
-        }
+        dealsSupportFeatured = Boolean((data || []).some((deal) => Object.prototype.hasOwnProperty.call(deal, "is_featured")));
         if (error) {
             cachedDeals = [];
             adminDeals.innerHTML = `<p class="text-sm text-ink/60">No active deals yet.</p>`;
@@ -1034,7 +1088,7 @@
             }
             throw new Error(message);
         }
-        if (data?.error) {
+        if (data === null || data === void 0 ? void 0 : data.error) {
             throw new Error(data.error);
         }
         return data;
@@ -1110,6 +1164,7 @@
         postForm.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     function editDeal(id) {
+        var _a;
         const deal = cachedDeals.find((item) => item.id === id);
         if (!deal)
             return;
@@ -1120,7 +1175,7 @@
         document.querySelector("#deal-summary").value = deal.summary || "";
         document.querySelector("#deal-details").value = deal.details || "";
         document.querySelector("#deal-cta-label").value = deal.cta_label || "Ask about this deal";
-        document.querySelector("#deal-sort-order").value = String(deal.sort_order ?? 100);
+        document.querySelector("#deal-sort-order").value = String((_a = deal.sort_order) !== null && _a !== void 0 ? _a : 100);
         setDateValue("deal-valid-from", dateInputValue(deal.valid_from));
         setDateValue("deal-valid-until", dateInputValue(deal.valid_until));
         document.querySelector("#deal-published").checked = Boolean(deal.published);
@@ -1131,13 +1186,14 @@
         dealForm.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     function editReview(id) {
+        var _a;
         const review = cachedReviews.find((item) => item.id === id);
         if (!review)
             return;
         showAdminView("reviews");
         reviewId.value = review.id;
         document.querySelector("#reviewer-name").value = review.reviewer_name || "";
-        document.querySelector("#review-rating").value = String(review.rating ?? 5);
+        document.querySelector("#review-rating").value = String((_a = review.rating) !== null && _a !== void 0 ? _a : 5);
         document.querySelector("#review-text").value = review.review_text || "";
         document.querySelector("#review-visible").checked = Boolean(review.is_visible);
         document.querySelector("#review-featured").checked = Boolean(review.is_featured);
@@ -1147,6 +1203,7 @@
         reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     function editArea(id) {
+        var _a;
         const area = cachedAreas.find((item) => item.id === id);
         if (!area)
             return;
@@ -1156,7 +1213,7 @@
         document.querySelector("#area-name").value = area.name || "";
         document.querySelector("#area-slug").value = area.slug || "";
         setAreaMapPosition(Number.isFinite(Number(area.map_x)) ? Number(area.map_x) : 0, Number.isFinite(Number(area.map_y)) ? Number(area.map_y) : 0);
-        document.querySelector("#area-sort-order").value = String(area.sort_order ?? 100);
+        document.querySelector("#area-sort-order").value = String((_a = area.sort_order) !== null && _a !== void 0 ? _a : 100);
         document.querySelector("#area-postcode-prefixes").value = area.postcode_prefixes.join(", ");
         document.querySelector("#area-match-terms").value = area.match_terms.join(", ");
         document.querySelector("#area-visible").checked = Boolean(area.is_visible);
@@ -1251,12 +1308,14 @@
         window.location.href = "../home/";
     });
     postForm.addEventListener("submit", async (event) => {
+        var _a, _b;
         event.preventDefault();
         setMessage(postMessage, "Saving post...", false);
         const formData = new FormData(postForm);
         const editingPostId = String(formData.get("post-id")).trim();
         const passedAtValue = String(formData.get("passed-at") || "").trim();
         const photo = formData.get("photo");
+        let uploadPhoto = null;
         let filePath = String(formData.get("post-image-path")).trim() || null;
         let imageUrl = null;
         let uploadedNewPhoto = false;
@@ -1264,9 +1323,14 @@
             setMessage(postMessage, "Choose a photo before uploading.", true);
             return;
         }
-        if (photo && photo.size > 0 && !isValidPhoto(photo)) {
-            setMessage(postMessage, "Photo must be a JPEG, PNG, or WebP under 5MB.", true);
-            return;
+        if (photo && photo.size > 0) {
+            try {
+                uploadPhoto = await preparePhotoForUpload(photo, "pass-photo");
+            }
+            catch (error) {
+                setMessage(postMessage, error instanceof Error ? error.message : "Photo must be a JPEG, PNG, or WebP under 5MB.", true);
+                return;
+            }
         }
         if (!passedAtValue) {
             setMessage(postMessage, "Choose the pass date.", true);
@@ -1277,21 +1341,21 @@
             return;
         }
         const { data: sessionData } = await client.auth.getSession();
-        const userId = sessionData.session?.user?.id;
+        const userId = (_b = (_a = sessionData.session) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
         if (!userId) {
             setMessage(postMessage, "Your session expired. Sign in again.", true);
             setSignedOut();
             return;
         }
-        if (photo && photo.size > 0) {
+        if (uploadPhoto) {
             setMessage(postMessage, "Uploading photo...", false);
-            filePath = `${userId}/${cleanFileName(photo)}`;
+            filePath = `${userId}/${cleanFileName(uploadPhoto, "pass-photo")}`;
             const { error: uploadError } = await client.storage
                 .from(window.KS_SUPABASE.bucket)
-                .upload(filePath, photo, {
+                .upload(filePath, uploadPhoto, {
                 cacheControl: "3600",
                 upsert: false,
-                contentType: photo.type
+                contentType: uploadPhoto.type
             });
             if (uploadError) {
                 setMessage(postMessage, uploadError.message, true);
@@ -1455,10 +1519,12 @@
         loadAdminInstructors();
     });
     instructorForm.addEventListener("submit", async (event) => {
+        var _a, _b;
         event.preventDefault();
         setMessage(instructorMessage, "Saving instructor...", false);
         const formData = new FormData(instructorForm);
         const photo = formData.get("instructor-photo");
+        let uploadPhoto = null;
         const editingInstructorId = String(formData.get("instructor-id")).trim();
         const oldPhotoPath = String(formData.get("instructor-current-photo-path")).trim();
         const name = String(formData.get("instructor-name")).trim();
@@ -1471,24 +1537,29 @@
             return;
         }
         if (photo && photo.size > 0) {
-            if (!isValidPhoto(photo)) {
-                setMessage(instructorMessage, "Photo must be a JPEG, PNG, or WebP under 5MB.", true);
+            try {
+                uploadPhoto = await preparePhotoForUpload(photo, "instructor-photo");
+            }
+            catch (error) {
+                setMessage(instructorMessage, error instanceof Error ? error.message : "Photo must be a JPEG, PNG, or WebP under 5MB.", true);
                 return;
             }
+        }
+        if (uploadPhoto) {
             const { data: sessionData } = await client.auth.getSession();
-            const userId = sessionData.session?.user?.id;
+            const userId = (_b = (_a = sessionData.session) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
             if (!userId) {
                 setMessage(instructorMessage, "Your session expired. Sign in again.", true);
                 setSignedOut();
                 return;
             }
-            photoPath = `${userId}/instructors/${cleanFileName(photo, "instructor-photo")}`;
+            photoPath = `${userId}/instructors/${cleanFileName(uploadPhoto, "instructor-photo")}`;
             const { error: uploadError } = await client.storage
                 .from(window.KS_SUPABASE.bucket)
-                .upload(photoPath, photo, {
+                .upload(photoPath, uploadPhoto, {
                 cacheControl: "3600",
                 upsert: false,
-                contentType: photo.type
+                contentType: uploadPhoto.type
             });
             if (uploadError) {
                 setMessage(instructorMessage, uploadError.message, true);
@@ -1532,8 +1603,8 @@
                 .select("id")
                 .eq("slug", instructorPayload.slug)
                 .maybeSingle();
-            if (lookupError || !createdInstructor?.id) {
-                setMessage(instructorMessage, lookupError?.message || "Instructor saved, but area assignment could not be confirmed.", true);
+            if (lookupError || !(createdInstructor === null || createdInstructor === void 0 ? void 0 : createdInstructor.id)) {
+                setMessage(instructorMessage, (lookupError === null || lookupError === void 0 ? void 0 : lookupError.message) || "Instructor saved, but area assignment could not be confirmed.", true);
                 return;
             }
             savedInstructorId = createdInstructor.id;
@@ -1566,11 +1637,12 @@
         loadAdminInstructors();
     });
     settingsForm.addEventListener("submit", async (event) => {
+        var _a, _b;
         event.preventDefault();
         setMessage(settingsMessage, "Saving site settings...", false);
         const formData = new FormData(settingsForm);
         const { data: sessionData } = await client.auth.getSession();
-        const userId = sessionData.session?.user?.id;
+        const userId = (_b = (_a = sessionData.session) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
         const rows = Object.entries(settingLabels).map(([key, label]) => ({
             key,
             label,
@@ -1894,7 +1966,7 @@
             const inputId = picker.dataset.dateInput;
             if (eventMatch(event, "[data-date-toggle]", picker)) {
                 const popover = picker.querySelector("[data-date-popover]");
-                const willOpen = popover?.classList.contains("hidden");
+                const willOpen = popover === null || popover === void 0 ? void 0 : popover.classList.contains("hidden");
                 datePickers.forEach((item) => setDatePickerOpen(item, false));
                 setDatePickerOpen(picker, willOpen);
                 return;
@@ -1949,8 +2021,8 @@
             scheduleAdminAutoLogout();
         }
     });
-    dealForm?.addEventListener("input", updateDealStatusPreview);
-    dealForm?.addEventListener("change", updateDealStatusPreview);
+    dealForm === null || dealForm === void 0 ? void 0 : dealForm.addEventListener("input", updateDealStatusPreview);
+    dealForm === null || dealForm === void 0 ? void 0 : dealForm.addEventListener("change", updateDealStatusPreview);
     postCancelEdit.addEventListener("click", () => {
         resetPostForm();
         setMessage(postMessage, "", false);
@@ -1984,9 +2056,9 @@
     refreshAreas.addEventListener("click", loadAdminAreas);
     refreshInstructors.addEventListener("click", loadAdminInstructors);
     refreshAdminUsers.addEventListener("click", loadAdminUsers);
-    areaMapPicker?.addEventListener("click", chooseAreaMapPosition);
-    areaMapPicker?.addEventListener("keydown", moveAreaMapPosition);
-    toggleAreaForm?.addEventListener("click", () => {
+    areaMapPicker === null || areaMapPicker === void 0 ? void 0 : areaMapPicker.addEventListener("click", chooseAreaMapPosition);
+    areaMapPicker === null || areaMapPicker === void 0 ? void 0 : areaMapPicker.addEventListener("keydown", moveAreaMapPosition);
+    toggleAreaForm === null || toggleAreaForm === void 0 ? void 0 : toggleAreaForm.addEventListener("click", () => {
         const open = areaFormPanel.classList.contains("hidden");
         setPanelOpen(areaFormPanel, toggleAreaForm, open, areaListPanel);
         if (open) {
@@ -1994,7 +2066,7 @@
             setMessage(areaMessage, "", false);
         }
     });
-    toggleInstructorForm?.addEventListener("click", () => {
+    toggleInstructorForm === null || toggleInstructorForm === void 0 ? void 0 : toggleInstructorForm.addEventListener("click", () => {
         const open = instructorFormPanel.classList.contains("hidden");
         setPanelOpen(instructorFormPanel, toggleInstructorForm, open, instructorListPanel);
         if (open) {
@@ -2002,7 +2074,7 @@
             setMessage(instructorMessage, "", false);
         }
     });
-    toggleAdminUserForm?.addEventListener("click", () => {
+    toggleAdminUserForm === null || toggleAdminUserForm === void 0 ? void 0 : toggleAdminUserForm.addEventListener("click", () => {
         const open = adminUserFormPanel.classList.contains("hidden");
         setPanelOpen(adminUserFormPanel, toggleAdminUserForm, open, adminUserListPanel);
         if (open) {
@@ -2015,7 +2087,7 @@
     resetReviewForm();
     showAdminView("passes");
     client.auth.onAuthStateChange((event, session) => {
-        if (event === "PASSWORD_RECOVERY" && session?.user) {
+        if (event === "PASSWORD_RECOVERY" && (session === null || session === void 0 ? void 0 : session.user)) {
             setPasswordRecoveryMode(session.user);
         }
     });

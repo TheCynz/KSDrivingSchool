@@ -64,7 +64,9 @@
         const supabase = await loadSupabaseClient();
         if (!supabase)
             return;
-        const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        const client = shared.getSupabaseClient(supabase);
+        if (!client)
+            return;
         const { data, error } = await client
             .from("site_settings")
             .select("key, value")
@@ -98,10 +100,11 @@
         }
     }
     function saveCookieChoice(choice) {
+        var _a;
         localStorage.setItem(cookieKey, JSON.stringify(choice));
         writeConsentCookie(choice);
         applyCookieChoice(choice);
-        document.querySelector("[data-cookie-banner]")?.remove();
+        (_a = document.querySelector("[data-cookie-banner]")) === null || _a === void 0 ? void 0 : _a.remove();
     }
     function readCookieChoice() {
         try {
@@ -115,7 +118,8 @@
         return readConsentCookie();
     }
     function showCookieBanner() {
-        document.querySelector("[data-cookie-banner]")?.remove();
+        var _a;
+        (_a = document.querySelector("[data-cookie-banner]")) === null || _a === void 0 ? void 0 : _a.remove();
         const savedChoice = readCookieChoice();
         const analyticsChecked = savedChoice ? Boolean(savedChoice.analytics) : true;
         const banner = document.createElement("section");

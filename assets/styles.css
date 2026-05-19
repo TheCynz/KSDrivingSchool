@@ -88,6 +88,17 @@ body {
   overflow-wrap: anywhere;
 }
 
+@media (max-width: 639px) {
+  .deal-carousel {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .deal-offer-card[data-deal-position="previous"],
+  .deal-offer-card[data-deal-position="next"] {
+    display: none;
+  }
+}
+
 .current-offers-panel {
   position: relative;
 }

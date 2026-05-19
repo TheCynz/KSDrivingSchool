@@ -10,13 +10,16 @@
     const slug = params.get("instructor");
     const safeUrlPattern = /^(https?:)?\/\//i;
     function publicPhone() {
-        return window.KS_SITE?.phoneDisplay || "0333 7720143";
+        var _a;
+        return ((_a = window.KS_SITE) === null || _a === void 0 ? void 0 : _a.phoneDisplay) || "0333 7720143";
     }
     function publicPhoneHref() {
-        return shared.safePhoneHref(window.KS_SITE?.phoneHref, "+443337720143");
+        var _a;
+        return shared.safePhoneHref((_a = window.KS_SITE) === null || _a === void 0 ? void 0 : _a.phoneHref, "+443337720143");
     }
     function publicEmail() {
-        return shared.safeEmail(window.KS_SITE?.email, "ksdrivingschool66@gmail.com");
+        var _a;
+        return shared.safeEmail((_a = window.KS_SITE) === null || _a === void 0 ? void 0 : _a.email, "ksdrivingschool66@gmail.com");
     }
     shared.bindMobileNav(mobileNavToggle, primaryNav);
     function instructorAreas(instructor) {
@@ -91,18 +94,21 @@
     `;
     }
     async function loadProfile() {
+        var _a;
         if (!profile)
             return;
         if (!slug || !shared.hasSupabaseConfig()) {
             renderMissing();
             return;
         }
-        const supabase = await window.KS_LOAD_SUPABASE?.();
+        const supabase = await ((_a = window.KS_LOAD_SUPABASE) === null || _a === void 0 ? void 0 : _a.call(window));
         if (!supabase) {
             renderMissing();
             return;
         }
-        const client = supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+        const client = shared.getSupabaseClient(supabase);
+        if (!client)
+            return;
         const { data, error } = await client
             .from("instructors")
             .select("name, transmission, phone, bio, profile_bio, photo_url, slug, instructor_areas(area:areas(name, is_visible, sort_order))")
