@@ -4,7 +4,16 @@
     const site = { ...(window.KS_SITE || {}) };
     const cookieKey = "ks_cookie_consent";
     const supabaseClientUrl = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4";
+    const googleTagBaseUrl = "https://www.googletagmanager.com/gtag/js";
+    const fallbackSite = {
+        phoneDisplay: "0333 7720143",
+        phoneHref: "+443337720143",
+        email: "ksdrivingschool66@gmail.com",
+        facebookUrl: "https://www.facebook.com/drivinglessonsshrewsbury/"
+    };
     let supabaseClientPromise = null;
+    let analyticsLoaded = false;
+    let analyticsEventsBound = false;
     function loadSupabaseClient() {
         if (!shared.hasSupabaseConfig())
             return Promise.resolve(null);
@@ -40,22 +49,138 @@
             element.textContent = new Date().getFullYear();
         });
         document.querySelectorAll("[data-phone-link]").forEach((element) => {
-            const phoneDisplay = site.phoneDisplay || "0333 7720143";
-            element.href = `tel:${shared.safePhoneHref(site.phoneHref, "+443337720143")}`;
+            const phoneDisplay = site.phoneDisplay || fallbackSite.phoneDisplay;
+            element.href = `tel:${shared.safePhoneHref(site.phoneHref, fallbackSite.phoneHref)}`;
             if (element.dataset.phoneLabel || element.children.length === 0) {
                 element.textContent = element.dataset.phoneLabel || phoneDisplay;
             }
         });
         document.querySelectorAll("[data-email-link]").forEach((element) => {
             const subject = element.dataset.emailSubject || "Driving lesson enquiry";
-            const email = shared.safeEmail(site.email, "ksdrivingschool66@gmail.com");
+            const email = shared.safeEmail(site.email, fallbackSite.email);
             element.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
             if (element.dataset.emailLabel || element.children.length === 0) {
                 element.textContent = element.dataset.emailLabel || email;
             }
         });
         document.querySelectorAll("[data-facebook-link]").forEach((element) => {
-            element.href = shared.safeHttpUrl(site.facebookUrl, "https://www.facebook.com/drivinglessonsshrewsbury/");
+            element.href = shared.safeHttpUrl(site.facebookUrl, fallbackSite.facebookUrl);
+        });
+    }
+    function getAnalyticsMeasurementId() {
+        const rawId = String(site.analyticsMeasurementId || "").trim();
+        if (!rawId)
+            return "";
+        if (/^G-[A-Z0-9]+$/i.test(rawId)) {
+            return rawId.toUpperCase();
+        }
+        console.warn("KS analyticsMeasurementId must be a GA4 Measurement ID that starts with G-.");
+        return "";
+    }
+    function ensureGoogleTag() {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () {
+            window.dataLayer.push(arguments);
+        };
+        return window.gtag;
+    }
+    function setGoogleAnalyticsDisabled(disabled) {
+        const measurementId = getAnalyticsMeasurementId();
+        if (!measurementId)
+            return;
+        window[`ga-disable-${measurementId}`] = disabled;
+        if (window.gtag) {
+            window.gtag("consent", "update", {
+                analytics_storage: disabled ? "denied" : "granted"
+            });
+        }
+    }
+    function expireCookie(name) {
+        const expiry = "Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; SameSite=Lax";
+        document.cookie = `${name}=; ${expiry}`;
+        const hostname = window.location.hostname;
+        if (!hostname || !hostname.includes("."))
+            return;
+        const parts = hostname.split(".");
+        const domains = new Set([hostname, `.${hostname}`]);
+        if (parts.length > 2) {
+            domains.add(`.${parts.slice(-2).join(".")}`);
+        }
+        domains.forEach((domain) => {
+            document.cookie = `${name}=; ${expiry}; Domain=${domain}`;
+        });
+    }
+    function clearGoogleAnalyticsCookies() {
+        document.cookie
+            .split(";")
+            .map((cookie) => cookie.split("=")[0].trim())
+            .filter((name) => name === "_ga" || name.startsWith("_ga_"))
+            .forEach(expireCookie);
+    }
+    function loadGoogleAnalytics() {
+        const measurementId = getAnalyticsMeasurementId();
+        if (!measurementId)
+            return;
+        setGoogleAnalyticsDisabled(false);
+        if (!analyticsLoaded) {
+            const tagUrl = `${googleTagBaseUrl}?id=${encodeURIComponent(measurementId)}`;
+            const existingScript = document.querySelector(`script[src="${tagUrl}"]`);
+            if (!existingScript) {
+                const script = document.createElement("script");
+                script.async = true;
+                script.src = tagUrl;
+                document.head.appendChild(script);
+            }
+            const gtag = ensureGoogleTag();
+            gtag("js", new Date());
+            gtag("config", measurementId);
+            analyticsLoaded = true;
+        }
+    }
+    function disableGoogleAnalytics() {
+        setGoogleAnalyticsDisabled(true);
+        clearGoogleAnalyticsCookies();
+    }
+    function trackAnalyticsEvent(name, params) {
+        var _a;
+        if (!((_a = window.KS_COOKIE_CONSENT) === null || _a === void 0 ? void 0 : _a.analytics) || !getAnalyticsMeasurementId() || !window.gtag)
+            return;
+        window.gtag("event", name, params || {});
+    }
+    function bindAnalyticsEventTracking() {
+        if (analyticsEventsBound)
+            return;
+        analyticsEventsBound = true;
+        document.addEventListener("click", (event) => {
+            const target = event.target instanceof Element ? event.target.closest("a, button") : null;
+            if (!target)
+                return;
+            if (target.matches("[data-phone-link], a[href^='tel:']")) {
+                trackAnalyticsEvent("generate_lead", { method: "phone_click" });
+                return;
+            }
+            if (target.matches("[data-email-link], a[href^='mailto:']")) {
+                trackAnalyticsEvent("generate_lead", { method: "email_click" });
+                return;
+            }
+            if (target.matches("[data-facebook-link]")) {
+                trackAnalyticsEvent("select_content", {
+                    content_type: "social_link",
+                    item_id: "facebook"
+                });
+            }
+        });
+        document.addEventListener("submit", (event) => {
+            const form = event.target instanceof HTMLFormElement ? event.target : null;
+            if (!form || !form.checkValidity())
+                return;
+            if (form.matches("#contact-form")) {
+                trackAnalyticsEvent("generate_lead", { method: "contact_form" });
+                return;
+            }
+            if (form.matches("#lesson-finder")) {
+                trackAnalyticsEvent("generate_lead", { method: "lesson_finder" });
+            }
         });
     }
     async function loadRemoteSiteSettings() {
@@ -78,9 +203,17 @@
         });
         window.KS_SITE = site;
         applySiteConfig();
+        if (window.KS_COOKIE_CONSENT) {
+            applyCookieChoice(window.KS_COOKIE_CONSENT);
+        }
     }
     function applyCookieChoice(choice) {
         window.KS_COOKIE_CONSENT = choice;
+        if (choice.analytics) {
+            loadGoogleAnalytics();
+            return;
+        }
+        disableGoogleAnalytics();
     }
     function writeConsentCookie(choice) {
         const maxAge = 60 * 60 * 24 * 180;
@@ -99,21 +232,47 @@
             return null;
         }
     }
+    function getConsentStorage() {
+        try {
+            return window.localStorage || null;
+        }
+        catch (_error) {
+            return null;
+        }
+    }
+    function removeStoredConsent(storage) {
+        try {
+            storage.removeItem(cookieKey);
+        }
+        catch (_error) {
+        }
+    }
     function saveCookieChoice(choice) {
         var _a;
-        localStorage.setItem(cookieKey, JSON.stringify(choice));
+        const storage = getConsentStorage();
+        if (storage) {
+            try {
+                storage.setItem(cookieKey, JSON.stringify(choice));
+            }
+            catch (_error) {
+                removeStoredConsent(storage);
+            }
+        }
         writeConsentCookie(choice);
         applyCookieChoice(choice);
         (_a = document.querySelector("[data-cookie-banner]")) === null || _a === void 0 ? void 0 : _a.remove();
     }
     function readCookieChoice() {
+        const storage = getConsentStorage();
+        if (!storage)
+            return readConsentCookie();
         try {
-            const stored = localStorage.getItem(cookieKey);
+            const stored = storage.getItem(cookieKey);
             if (stored)
                 return JSON.parse(stored);
         }
         catch (_error) {
-            localStorage.removeItem(cookieKey);
+            removeStoredConsent(storage);
         }
         return readConsentCookie();
     }
@@ -161,6 +320,7 @@
         element.addEventListener("click", showCookieBanner);
     });
     shared.bindMobileNav(document.querySelector("#mobile-nav-toggle"), document.querySelector("#primary-nav"));
+    bindAnalyticsEventTracking();
     const cookieChoice = readCookieChoice();
     if (cookieChoice) {
         applyCookieChoice(cookieChoice);
