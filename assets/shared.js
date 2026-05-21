@@ -50,6 +50,9 @@
     function bindMobileNav(toggle, nav) {
         if (!toggle || !nav)
             return;
+        if (toggle.getAttribute("data-mobile-nav-bound") === "true")
+            return;
+        toggle.setAttribute("data-mobile-nav-bound", "true");
         toggle.addEventListener("click", () => {
             const expanded = toggle.getAttribute("aria-expanded") === "true";
             toggle.setAttribute("aria-expanded", String(!expanded));

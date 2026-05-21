@@ -145,6 +145,7 @@
             card.classList.toggle("ring-road", active);
             card.classList.toggle("ring-1", !active);
             card.classList.toggle("ring-ink/8", !active);
+            card.setAttribute("aria-pressed", String(active));
         });
         const activeCard = adminNavCards.find((card) => card.dataset.adminView === viewName);
         if (adminConfigNav && activeCard && adminConfigNav.contains(activeCard)) {

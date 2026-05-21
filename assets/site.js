@@ -160,6 +160,7 @@
     document.querySelectorAll("[data-cookie-settings]").forEach((element) => {
         element.addEventListener("click", showCookieBanner);
     });
+    shared.bindMobileNav(document.querySelector("#mobile-nav-toggle"), document.querySelector("#primary-nav"));
     const cookieChoice = readCookieChoice();
     if (cookieChoice) {
         applyCookieChoice(cookieChoice);

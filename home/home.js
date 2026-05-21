@@ -19,6 +19,7 @@
     const lessonFinderMessage = document.querySelector("#lesson-finder-message");
     const areaTabsContainer = document.querySelector("#area-tabs");
     const coverageMapMarkers = document.querySelector("#coverage-map-markers");
+    const heroAreaRotator = document.querySelector("#hero-area-rotator");
     const mobileNavToggle = document.querySelector("#mobile-nav-toggle");
     const primaryNav = document.querySelector("#primary-nav");
     const areaMapWidth = 1000;
@@ -36,7 +37,14 @@
     let visibleReviews = [];
     let reviewAutoAdvanceTimer = 0;
     let activeReviewIndex = 0;
+    let heroAreaRotationTimer = 0;
+    let heroAreaRotationIndex = 0;
+    let heroAreaRotationToken = 0;
     const safeUrlPattern = /^(https?:)?\/\//i;
+    const defaultHeroAreaLabel = "Shropshire";
+    const heroAreaEraseDelayMs = 52;
+    const heroAreaTypeDelayMs = 92;
+    const heroAreaHoldDelayMs = 2400;
     function alignHashTarget() {
         const targetId = decodeURIComponent(window.location.hash || "").replace(/^#/, "");
         if (!targetId)
@@ -503,6 +511,92 @@
             return order;
         return areaA.name.localeCompare(areaB.name, "en-GB");
     }
+    function heroAreaLabels() {
+        const labels = [defaultHeroAreaLabel, ...areas.map((area) => area.name)]
+            .map((label) => String(label || "").trim())
+            .filter(Boolean);
+        return Array.from(new Set(labels));
+    }
+    function stopHeroAreaRotation() {
+        heroAreaRotationToken += 1;
+        if (!heroAreaRotationTimer)
+            return;
+        window.clearTimeout(heroAreaRotationTimer);
+        heroAreaRotationTimer = 0;
+    }
+    function setHeroAreaLabel(label) {
+        if (!heroAreaRotator)
+            return;
+        heroAreaRotator.textContent = label || defaultHeroAreaLabel;
+    }
+    function scheduleHeroAreaStep(callback, delay, token) {
+        heroAreaRotationTimer = window.setTimeout(() => {
+            if (token !== heroAreaRotationToken)
+                return;
+            callback();
+        }, delay);
+    }
+    function eraseHeroAreaLabel(token, onComplete) {
+        if (!heroAreaRotator)
+            return;
+        let current = heroAreaRotator.textContent || "";
+        heroAreaRotator.classList.add("is-typing");
+        const eraseNextCharacter = () => {
+            if (token !== heroAreaRotationToken)
+                return;
+            if (current.length === 0) {
+                onComplete();
+                return;
+            }
+            current = current.slice(0, -1);
+            heroAreaRotator.textContent = current;
+            scheduleHeroAreaStep(eraseNextCharacter, heroAreaEraseDelayMs, token);
+        };
+        eraseNextCharacter();
+    }
+    function typeHeroAreaLabel(label, token, onComplete) {
+        if (!heroAreaRotator)
+            return;
+        const target = label || defaultHeroAreaLabel;
+        let index = 0;
+        heroAreaRotator.textContent = "";
+        heroAreaRotator.classList.add("is-typing");
+        const typeNextCharacter = () => {
+            if (token !== heroAreaRotationToken)
+                return;
+            heroAreaRotator.textContent = target.slice(0, index);
+            if (index >= target.length) {
+                heroAreaRotator.classList.remove("is-typing");
+                onComplete();
+                return;
+            }
+            index += 1;
+            scheduleHeroAreaStep(typeNextCharacter, heroAreaTypeDelayMs, token);
+        };
+        typeNextCharacter();
+    }
+    function rotateHeroAreaLabel(labels, token) {
+        scheduleHeroAreaStep(() => {
+            heroAreaRotationIndex = (heroAreaRotationIndex + 1) % labels.length;
+            eraseHeroAreaLabel(token, () => {
+                typeHeroAreaLabel(labels[heroAreaRotationIndex], token, () => rotateHeroAreaLabel(labels, token));
+            });
+        }, heroAreaHoldDelayMs, token);
+    }
+    function renderHeroAreaRotation() {
+        if (!heroAreaRotator)
+            return;
+        const labels = heroAreaLabels();
+        const longestLabel = labels.reduce((longest, label) => Math.max(longest, label.length), defaultHeroAreaLabel.length);
+        heroAreaRotator.style.minInlineSize = `${Math.min(Math.max(longestLabel, 9), 18)}ch`;
+        heroAreaRotationIndex = Math.min(heroAreaRotationIndex, Math.max(labels.length - 1, 0));
+        setHeroAreaLabel(labels[heroAreaRotationIndex] || defaultHeroAreaLabel);
+        stopHeroAreaRotation();
+        if (labels.length <= 1 || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+            return;
+        const token = ++heroAreaRotationToken;
+        rotateHeroAreaLabel(labels, token);
+    }
     function normalizeInstructor(instructor) {
         const instructorAreas = Array.isArray(instructor.instructor_areas)
             ? instructor.instructor_areas
@@ -743,6 +837,7 @@
         if (!client) {
             areas = [];
             cacheVisibleAreas();
+            renderHeroAreaRotation();
             renderInstructors();
             return;
         }
@@ -754,6 +849,7 @@
             .order("name", { ascending: true });
         areas = error || !data ? [] : data.map(normalizeArea).filter(Boolean).sort(sortAreas);
         cacheVisibleAreas();
+        renderHeroAreaRotation();
         renderInstructors();
     }
     async function loadInstructors(client) {
@@ -843,6 +939,7 @@
     shared.bindMobileNav(mobileNavToggle, primaryNav);
     bindDealCarouselControls();
     bindReviewCarouselControls();
+    renderHeroAreaRotation();
     loadPosts();
     window.addEventListener("hashchange", alignHashTarget);
 })();

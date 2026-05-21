@@ -12,16 +12,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/theme.js"></script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=admin-upload-reset-20260519">
+    <link rel="stylesheet" href="../assets/styles.css?v=best-bits-20260521">
   </head>
-  <body class="min-h-screen bg-kerb text-ink antialiased">
-    <main class="mx-auto min-h-screen max-w-6xl px-5 py-5">
-      <section class="rounded-md border border-ink/10 bg-white p-4 shadow-xl shadow-ink/8">
-        <div class="flex items-center justify-between gap-3">
-          <a class="inline-flex w-fit rounded-md bg-white px-3 py-2 shadow-sm ring-1 ring-ink/8" href="../home/" aria-label="KS Driving School home">
-            <img class="h-10 w-auto" src="../assets/ks-driving-school-logo.png" width="396" height="140" alt="KS Driving School">
-          </a>
-          <div id="session-panel" class="hidden min-w-0 rounded-md border border-ink/10 bg-kerb px-3 py-2">
+  <body class="admin-shell min-h-screen bg-kerb text-ink antialiased">
+    <main class="mx-auto min-h-screen max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <section class="admin-command-panel rounded-md border border-ink/10 bg-white p-4 shadow-xl shadow-ink/8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex min-w-0 items-center gap-4">
+            <a class="admin-brand-card inline-flex w-fit rounded-md bg-white px-3 py-2 shadow-sm ring-1 ring-ink/8" href="../home/" aria-label="KS Driving School home">
+              <img class="h-10 w-auto" src="../assets/ks-driving-school-logo.png" width="396" height="140" alt="KS Driving School">
+            </a>
+            <div class="min-w-0">
+              <p class="text-xs font-black uppercase tracking-[0.12em] text-leaf">Admin portal</p>
+              <h1 class="mt-1 text-xl font-black text-road sm:text-2xl">Control centre</h1>
+              <p class="mt-1 max-w-2xl text-sm leading-6 text-ink/64">Manage passes, reviews, deals, instructors, lesson areas, and public contact settings.</p>
+            </div>
+          </div>
+          <div id="session-panel" class="admin-session-panel hidden min-w-0 rounded-md border border-ink/10 bg-kerb px-3 py-2">
             <div class="min-w-0">
               <p class="text-xs font-bold uppercase text-leaf">Signed in</p>
               <p id="session-email" class="truncate text-sm font-bold text-ink"></p>
@@ -31,7 +38,7 @@
           </div>
         </div>
 
-        <form id="login-form" class="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form id="login-form" class="admin-auth-grid mt-6 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div class="relative">
             <label class="text-sm font-bold text-ink" for="email">Email</label>
             <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="email" name="email" type="email" autocomplete="email" required>
@@ -44,7 +51,7 @@
           <p id="login-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
         </form>
 
-        <form id="password-reset-form" class="mt-5 hidden grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form id="password-reset-form" class="admin-auth-grid mt-6 hidden grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div>
             <label class="text-sm font-bold text-ink" for="new-password">New password</label>
             <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="new-password" name="new-password" type="password" autocomplete="new-password" minlength="12">
@@ -60,37 +67,44 @@
       </section>
 
       <section id="admin-panel" class="mt-6 hidden">
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-xs font-black uppercase tracking-[0.12em] text-leaf">Workspace</p>
+            <h2 class="mt-1 text-2xl font-black text-road sm:text-3xl">Choose what to manage</h2>
+          </div>
+          <p class="max-w-xl text-sm leading-6 text-ink/64">Changes here update the public site, instructor finder, and SVG coverage map.</p>
+        </div>
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button">
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-2 ring-road" data-admin-view="passes" type="button" aria-pressed="true">
             <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Passes</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Add, edit, publish, or delete pass gallery posts.</p>
           </button>
-          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="reviews" type="button">
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="reviews" type="button" aria-pressed="false">
             <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Reviews</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Manage homepage testimonials and featured reviews.</p>
           </button>
-          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="deals" type="button">
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="deals" type="button" aria-pressed="false">
             <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Deals</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Create learner offers shown on the home page and deals page.</p>
           </button>
-          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="instructors" type="button">
+          <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-xl shadow-ink/8 ring-1 ring-ink/8" data-admin-view="instructors" type="button" aria-pressed="false">
             <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Instructors</p>
             <p class="mt-2 text-sm leading-6 text-ink/65">Manage instructor profiles, photos, and areas.</p>
           </button>
         </div>
 
-        <details id="admin-config-nav" class="mt-4 rounded-md border border-ink/10 bg-white/70 p-4 shadow-sm shadow-ink/5">
+        <details id="admin-config-nav" class="admin-config-panel mt-4 rounded-md border border-ink/10 bg-white/70 p-4 shadow-sm shadow-ink/5">
           <summary class="cursor-pointer text-sm font-black uppercase text-road">Site Configuration</summary>
           <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="settings" type="button">
+            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="settings" type="button" aria-pressed="false">
               <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Site settings</p>
               <p class="mt-2 text-sm leading-6 text-ink/65">Update public phone, email, and Facebook links.</p>
             </button>
-            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="areas" type="button">
+            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="areas" type="button" aria-pressed="false">
               <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Areas</p>
               <p class="mt-2 text-sm leading-6 text-ink/65">Manage public coverage filters and map markers.</p>
             </button>
-            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="admins" type="button">
+            <button class="admin-nav-card min-w-0 rounded-md bg-white p-5 text-left shadow-sm shadow-ink/5 ring-1 ring-ink/8" data-admin-view="admins" type="button" aria-pressed="false">
               <p class="break-words text-base font-black uppercase text-leaf sm:text-lg">Admins</p>
               <p class="mt-2 text-sm leading-6 text-ink/65">Create admins, reset passwords, and remove access.</p>
             </button>
@@ -619,7 +633,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4"></script>
     <script src="../assets/supabase-config.js"></script>
-    <script src="../assets/shared.js?v=admin-upload-reset-20260519"></script>
-    <script src="admin.js?v=admin-upload-reset-20260519"></script>
+    <script src="../assets/shared.js?v=best-bits-20260521"></script>
+    <script src="admin.js?v=best-bits-20260521"></script>
   </body>
 </html>
