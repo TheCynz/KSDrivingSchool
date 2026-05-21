@@ -130,7 +130,11 @@
         loginMessage.textContent = "Add Supabase URL and publishable key in assets/supabase-config.js.";
         return;
     }
-    const client = window.supabase.createClient(window.KS_SUPABASE.url, window.KS_SUPABASE.publishableKey);
+    const client = shared.getSupabaseClient(window.supabase);
+    if (!client) {
+        loginMessage.textContent = "Supabase is not available. Refresh and try again.";
+        return;
+    }
     function setMessage(target, message, isError) {
         target.textContent = message;
         target.classList.toggle("text-red-700", Boolean(isError));
@@ -293,6 +297,9 @@
             .slice(0, 48);
         return `${base || fallbackName}-${crypto.randomUUID()}.${extension}`;
     }
+    function uploadFileName(file, fallbackName, extension) {
+        return cleanFileName(file, fallbackName).replace(/\.[^.]+$/, `.${extension}`);
+    }
     function slugify(value) {
         return String(value)
             .trim()
@@ -335,33 +342,39 @@
         const height = image.height || image.naturalHeight;
         if (!width || !height)
             throw new Error("Could not read the image dimensions.");
-        const maxEdge = 1800;
-        const scale = Math.min(1, maxEdge / Math.max(width, height));
         const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(width * scale));
-        canvas.height = Math.max(1, Math.round(height * scale));
         const context = canvas.getContext("2d");
         if (!context)
             throw new Error("Could not prepare the image for upload.");
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        if ("close" in image && typeof image.close === "function")
-            image.close();
         const outputType = "image/webp";
-        const qualities = [0.82, 0.72, 0.62, 0.52, 0.42];
+        const maxEdges = [1800, 1500, 1200, 960, 760];
+        const qualities = [0.82, 0.72, 0.62, 0.52, 0.42, 0.34];
         let smallestBlob = null;
-        for (const quality of qualities) {
-            const blob = await canvasToBlob(canvas, outputType, quality);
-            if (!blob)
-                continue;
-            smallestBlob = blob;
-            if (blob.size <= maxPhotoSize) {
-                return new File([blob], cleanFileName(file, fallbackName).replace(/\.[^.]+$/, outputType === "image/png" ? ".png" : ".webp"), {
-                    type: outputType
-                });
+        for (const maxEdge of maxEdges) {
+            const scale = Math.min(1, maxEdge / Math.max(width, height));
+            canvas.width = Math.max(1, Math.round(width * scale));
+            canvas.height = Math.max(1, Math.round(height * scale));
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            for (const quality of qualities) {
+                const blob = await canvasToBlob(canvas, outputType, quality);
+                if (!blob)
+                    continue;
+                if (!smallestBlob || blob.size < smallestBlob.size)
+                    smallestBlob = blob;
+                if (blob.size <= maxPhotoSize) {
+                    if ("close" in image && typeof image.close === "function")
+                        image.close();
+                    return new File([blob], uploadFileName(file, fallbackName, "webp"), {
+                        type: outputType
+                    });
+                }
             }
         }
+        if ("close" in image && typeof image.close === "function")
+            image.close();
         if (smallestBlob && smallestBlob.size <= maxPhotoSize) {
-            return new File([smallestBlob], cleanFileName(file, fallbackName).replace(/\.[^.]+$/, outputType === "image/png" ? ".png" : ".webp"), {
+            return new File([smallestBlob], uploadFileName(file, fallbackName, "webp"), {
                 type: outputType
             });
         }
@@ -532,7 +545,7 @@
         document.querySelector("#review").value = "";
         document.querySelector("#published").checked = true;
         postPhoto.required = true;
-        postPhotoHelp.textContent = "JPEG, PNG, or WebP. Keep student consent on file before publishing.";
+        postPhotoHelp.textContent = "JPEG, PNG, or WebP. Large photos are compressed before upload. Keep student consent on file before publishing.";
         postFormTitle.textContent = "Student passed with no faults";
         postSubmit.textContent = "Upload post";
         postCancelEdit.classList.add("hidden");
@@ -1158,7 +1171,7 @@
         document.querySelector("#published").checked = Boolean(post.published);
         postPhoto.value = "";
         postPhoto.required = false;
-        postPhotoHelp.textContent = "Leave blank to keep the current photo, or choose a new JPEG, PNG, or WebP to replace it.";
+        postPhotoHelp.textContent = "Leave blank to keep the current photo, or choose a new JPEG, PNG, or WebP to replace it. Large photos are compressed before upload.";
         postFormTitle.textContent = `Edit ${post.student_name || "pass post"}`;
         postSubmit.textContent = "Save post";
         postCancelEdit.classList.remove("hidden");

@@ -432,14 +432,11 @@
             renderDeals([]);
             return;
         }
-        const today = new Date().toISOString().slice(0, 10);
         const { data, error } = await client
             .from("current_deals")
-            .select("title, summary, details, cta_label, valid_from, valid_until")
+            .select("title, summary, details, cta_label")
             .eq("deal_type", "pupil")
             .eq("published", true)
-            .or(`valid_from.is.null,valid_from.lte.${today}`)
-            .or(`valid_until.is.null,valid_until.gte.${today}`)
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: false })
             .limit(6);

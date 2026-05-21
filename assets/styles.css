@@ -258,12 +258,20 @@ body:not(.admin-shell) :where(a.rounded-md.bg-signal, button.rounded-md.bg-signa
 
 @media (max-width: 639px) {
   .deal-carousel {
+    display: block !important;
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .deal-offer-card[data-deal-position="previous"],
   .deal-offer-card[data-deal-position="next"] {
     display: none;
+  }
+
+  .deal-offer-card[data-deal-position="active"] {
+    min-height: 0;
+    opacity: 1;
+    transform: none;
+    width: 100%;
   }
 }
 

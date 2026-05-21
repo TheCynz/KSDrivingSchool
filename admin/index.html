@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <meta name="referrer" content="no-referrer">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://bqlqkuxmrahfghbbrbxt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://bqlqkuxmrahfghbbrbxt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>KS Driving School Admin</title>
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../assets/theme.js"></script>
     <link rel="icon" href="../assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="../assets/styles.css?v=best-bits-20260521">
+    <link rel="stylesheet" href="../assets/tailwind.css?v=console-fix-20260521">
+    <link rel="stylesheet" href="../assets/styles.css?v=console-fix-20260521">
   </head>
   <body class="admin-shell min-h-screen bg-kerb text-ink antialiased">
     <main class="mx-auto min-h-screen max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -161,7 +159,7 @@
             <div>
               <label class="text-sm font-bold" for="photo">Photo</label>
               <input class="mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 file:mr-4 file:rounded-md file:border-0 file:bg-signal file:px-4 file:py-2 file:font-bold file:text-ink" id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required>
-              <p id="post-photo-help" class="mt-2 text-sm text-ink/60">JPEG, PNG, or WebP. Keep student consent on file before publishing.</p>
+              <p id="post-photo-help" class="mt-2 text-sm text-ink/60">JPEG, PNG, or WebP. Large photos are compressed before upload. Keep student consent on file before publishing.</p>
             </div>
             <label class="flex items-center gap-3 text-sm font-bold">
               <input id="published" name="published" type="checkbox" class="h-5 w-5 rounded border-ink/20 text-leaf" checked>
@@ -542,7 +540,7 @@
               <div class="sm:col-span-2">
                 <label class="text-sm font-bold" for="instructor-photo">Instructor photo</label>
                 <input class="mt-2 w-full rounded-md border border-ink/15 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-md file:border-0 file:bg-kerb file:px-4 file:py-2 file:font-bold file:text-road focus:ring-2 focus:ring-leaf" id="instructor-photo" name="instructor-photo" type="file" accept="image/jpeg,image/png,image/webp">
-                <p class="mt-2 text-xs leading-5 text-ink/55">JPEG, PNG, or WebP under 5MB. Leave blank if you do not have a profile photo yet.</p>
+                <p class="mt-2 text-xs leading-5 text-ink/55">JPEG, PNG, or WebP. Large photos are compressed before upload. Leave blank if you do not have a profile photo yet.</p>
               </div>
             </div>
             <div>
