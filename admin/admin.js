@@ -201,7 +201,10 @@
         sessionEmail.textContent = "";
     }
     function isPasswordRecoveryRoute() {
-        return window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery");
+        const params = new URLSearchParams(window.location.search);
+        return params.get("password-reset") === "1" ||
+            window.location.hash.includes("type=recovery") ||
+            window.location.search.includes("type=recovery");
     }
     function setPasswordRecoveryMode(user) {
         stopAdminAutoLogout();
