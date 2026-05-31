@@ -1118,7 +1118,8 @@
         }
         catch (error) {
             cachedAdminUsers = [];
-            adminUsers.innerHTML = `<p class="text-sm text-red-700">${escapeHtml(error.message)} Confirm the admin-users Edge Function is deployed.</p>`;
+            const fallback = "Could not load admin users. Please try again.";
+            adminUsers.innerHTML = `<p class="text-sm text-red-700">${escapeHtml(error.message || fallback)}</p>`;
             return;
         }
         if (cachedAdminUsers.length === 0) {
