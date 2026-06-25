@@ -129,10 +129,13 @@
       <section class="relative overflow-hidden bg-road text-white">
         <img class="absolute inset-0 h-full w-full object-cover opacity-85" src="../assets/hero-blue-car.jpg" width="1440" height="897" alt="Driving instructor car on the road" fetchpriority="high" decoding="async">
         <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,35,78,.70),rgba(11,58,120,.38),rgba(11,58,120,.08))]"></div>
-        <div class="relative z-10 mx-auto grid min-w-0 max-w-6xl gap-5 px-4 pb-6 pt-4 sm:gap-8 sm:px-5 sm:pb-28 sm:pt-10 lg:min-h-[720px] lg:grid-cols-[1fr_380px] lg:items-center">
+        <div class="relative z-10 mx-auto grid min-w-0 max-w-6xl gap-5 px-4 pb-6 pt-4 sm:gap-8 sm:px-5 sm:pb-28 sm:pt-10 lg:min-h-[720px] lg:grid-cols-[minmax(0,1fr)_minmax(320px,380px)] lg:items-center lg:gap-10">
           <div class="order-2 max-w-3xl lg:order-1">
             <p class="mb-4 inline-flex rounded-md bg-white/12 px-3 py-2 text-sm font-bold text-signal ring-1 ring-white/20 sm:mb-5">Local driving lessons in Shrewsbury</p>
-            <h1 class="max-w-3xl text-3xl font-black leading-[1.06] sm:text-6xl lg:text-7xl">Driving lessons in <span id="hero-area-rotator" class="hero-area-rotator text-signal">Shrewsbury</span></h1>
+            <h1 class="max-w-[12ch] text-3xl font-black leading-[1.06] sm:max-w-[14ch] sm:text-6xl lg:max-w-[19ch] lg:text-7xl">
+              <span class="block">Driving lessons in</span>
+              <span id="hero-area-rotator" class="hero-area-rotator block text-signal">Shrewsbury</span>
+            </h1>
             <p class="mt-4 max-w-2xl text-base leading-7 text-white/88 sm:mt-5 sm:text-lg sm:leading-8">Patient manual and automatic instructors for Shrewsbury learners, local test-route practice, and clear booking by phone or message.</p>
             <div class="mt-5 grid gap-3 sm:mt-6 sm:flex sm:flex-wrap">
               <a class="inline-flex items-center justify-center rounded-md bg-signal px-6 py-4 text-base font-black text-ink shadow-lg shadow-black/20 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white" data-phone-link data-phone-label="Call 0333 7720143" href="tel:+443337720143">Call 0333 7720143</a>
@@ -144,7 +147,7 @@
               <span class="rounded-md bg-white/12 px-3 py-2 ring-1 ring-white/18">Local test routes</span>
             </div>
           </div>
-          <aside class="mobile-safe-panel order-1 min-w-0 rounded-md bg-white p-4 text-ink shadow-2xl shadow-black/25 sm:p-5 lg:order-2">
+          <aside class="mobile-safe-panel order-1 min-w-0 justify-self-stretch rounded-md bg-white p-4 text-ink shadow-2xl shadow-black/25 sm:p-5 lg:order-2 lg:max-w-[380px] lg:justify-self-end">
             <p class="text-sm font-black uppercase text-leaf">Start here</p>
             <h2 class="mt-2 text-2xl font-black">Book lessons in minutes</h2>
             <form id="lesson-finder" class="mt-5 grid gap-4">
@@ -329,7 +332,7 @@
             </div>
           </div>
           <div id="review-carousel-status" class="sr-only" role="status">Loading reviews.</div>
-          <div id="review-carousel" class="review-carousel mt-7 grid grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)_minmax(0,1fr)] items-stretch gap-2 pb-7 pt-3 sm:mt-10 sm:gap-4 lg:gap-6" aria-label="Learner reviews carousel">
+          <div id="review-carousel" class="review-carousel mt-7 grid grid-cols-1 items-stretch gap-2 pb-7 pt-3 sm:mt-10 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)_minmax(0,1fr)] sm:gap-4 lg:gap-6" aria-label="Learner reviews carousel">
             <article class="review-slide rounded-md border border-ink/8 bg-kerb p-4 sm:p-6">
               <div class="h-4 w-20 rounded bg-white/85"></div>
               <div class="mt-6 space-y-3">

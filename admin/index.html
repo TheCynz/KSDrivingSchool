@@ -36,7 +36,7 @@
           </div>
         </div>
 
-        <form id="login-form" class="admin-auth-grid mt-6 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form id="login-form" class="admin-auth-grid mt-6 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end" method="post" action="./" autocomplete="on">
           <div class="relative">
             <label class="text-sm font-bold text-ink" for="email">Email</label>
             <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="email" name="email" type="email" autocomplete="email" required>
@@ -49,7 +49,7 @@
           <p id="login-message" class="min-h-6 text-sm text-ink/70 sm:col-span-3" role="status"></p>
         </form>
 
-        <form id="password-reset-form" class="admin-auth-grid mt-6 hidden grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form id="password-reset-form" class="admin-auth-grid mt-6 hidden grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end" method="post" action="./" autocomplete="on">
           <div>
             <label class="text-sm font-bold text-ink" for="new-password">New password</label>
             <input class="mt-2 w-full rounded-md border-2 border-ink/15 bg-white px-4 py-3 text-ink shadow-inner outline-none focus:border-signal focus:ring-2 focus:ring-signal" id="new-password" name="new-password" type="password" autocomplete="new-password" minlength="12">

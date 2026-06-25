@@ -56,8 +56,8 @@
     function renderProfile(instructor) {
         const imageUrl = instructor.photo_url && safeUrlPattern.test(instructor.photo_url) ? shared.escapeHtml(instructor.photo_url) : "";
         const photo = imageUrl
-            ? `<img class="aspect-[4/5] w-full rounded-md object-cover shadow-xl shadow-ink/10" src="${imageUrl}" alt="${shared.escapeHtml(instructor.name)}" loading="eager" decoding="async">`
-            : `<div class="flex aspect-[4/5] w-full items-center justify-center rounded-md bg-white text-6xl font-black text-road shadow-xl shadow-ink/10">${shared.escapeHtml(shared.initials(instructor.name))}</div>`;
+            ? `<img class="aspect-[4/5] h-full w-full rounded-[28px] object-cover" src="${imageUrl}" alt="${shared.escapeHtml(instructor.name)}" loading="eager" decoding="async">`
+            : `<div class="flex aspect-[4/5] h-full w-full items-center justify-center rounded-[28px] bg-white text-6xl font-black text-road">${shared.escapeHtml(shared.initials(instructor.name))}</div>`;
         const description = instructor.profile_bio || instructor.bio || "Contact KS Driving School to check this instructor's current lesson availability.";
         const directPhone = instructor.phone || publicPhone();
         const directPhoneHref = shared.safePhoneHref(directPhone, publicPhoneHref());
@@ -69,11 +69,11 @@
         if (intro)
             intro.textContent = `${instructor.transmission || "Driving"} lessons covering ${areaLabel}.`;
         profile.innerHTML = `
-      <div class="grid gap-8 lg:grid-cols-[380px_1fr] lg:items-start">
-        <div>
+      <div class="grid gap-8 lg:grid-cols-[minmax(340px,420px)_1fr] lg:items-center lg:gap-10">
+        <div class="self-stretch">
           ${photo}
         </div>
-        <article class="rounded-md bg-white p-6 shadow-xl shadow-ink/8 sm:p-8">
+        <article class="rounded-[28px] bg-white p-6 sm:p-8">
           <div class="flex flex-wrap gap-2">
             <span class="rounded bg-kerb px-3 py-2 text-sm font-black text-road">${shared.escapeHtml(instructor.transmission || "Lessons")}</span>
             <span class="rounded bg-kerb px-3 py-2 text-sm font-black text-road">${shared.escapeHtml(areaLabel)}</span>

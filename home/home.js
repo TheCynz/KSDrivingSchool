@@ -291,9 +291,9 @@
         stopReviewAutoAdvance();
         const tone = kind === "error" ? "text-ink/60" : "text-ink/62";
         reviewCarousel.innerHTML = `
-      <div class="w-full rounded-md border border-ink/8 bg-kerb/70 p-6 ${tone}">
-        <p class="text-base font-black text-ink">${escapeHtml(message.title)}</p>
-        <p class="mt-2 max-w-xl text-sm leading-6">${escapeHtml(message.body)}</p>
+      <div class="review-empty-state rounded-md border border-ink/8 bg-kerb/70 p-5 ${tone} sm:p-6">
+        <p class="text-xl font-black leading-tight text-ink sm:text-2xl">${escapeHtml(message.title)}</p>
+        <p class="mt-3 max-w-xl text-base leading-7">${escapeHtml(message.body)}</p>
       </div>
     `;
         if (reviewCarouselStatus)
