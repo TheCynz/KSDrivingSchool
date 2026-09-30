@@ -1,5 +1,5 @@
 User-agent: *
-Disallow: /admin/
 Allow: /
+Disallow: /admin/
 
 Sitemap: https://www.ksdrivingschool.uk/sitemap.xml

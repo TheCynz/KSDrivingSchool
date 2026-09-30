@@ -269,7 +269,7 @@
             <span class="text-signal" aria-label="${rating} out of 5 stars">${reviewStars(rating)}</span>
             <span class="text-xs text-ink/45">${rating}/5</span>
           </div>
-          <blockquote class="mt-6 text-lg font-black leading-7 text-ink sm:mt-7 sm:text-xl sm:leading-8 lg:text-2xl lg:leading-9">"${escapeHtml(review.review_text)}"</blockquote>
+          <blockquote class="mt-6 text-base font-bold leading-7 text-ink sm:mt-7 sm:text-lg sm:leading-8">"${escapeHtml(review.review_text)}"</blockquote>
         </div>
         <div class="relative mt-8 flex items-center justify-between gap-4 border-t border-ink/8 pt-4">
           <div>
@@ -460,7 +460,9 @@
         const imageUrl = safeUrlPattern.test(post.image_url) ? escapeHtml(post.image_url) : "";
         return `
       <article class="overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-ink/8">
-        <img class="gallery-image h-auto w-full object-cover" src="${imageUrl}" alt="${studentName} passed their driving test" loading="lazy" decoding="async">
+        <div class="gallery-image-frame">
+          <img class="gallery-image" src="${imageUrl}" alt="${studentName} passed their driving test" loading="lazy" decoding="async">
+        </div>
         <div class="p-5">
           <p class="text-sm font-bold text-leaf">${date}</p>
           <h3 class="mt-2 text-xl font-black">${studentName}</h3>

@@ -210,10 +210,19 @@ body:not(.admin-shell) :where(a.rounded-md.bg-signal, button.rounded-md.bg-signa
   }
 }
 
+.gallery-image-frame {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  background: #fff;
+  overflow: hidden;
+}
+
 .gallery-image {
-  aspect-ratio: 4 / 3;
-  background: var(--color-sand);
-  border-radius: var(--radius-panel);
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .review-slide {
